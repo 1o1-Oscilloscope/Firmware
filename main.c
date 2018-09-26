@@ -46,19 +46,10 @@ int main(void)
 	sw_timer test1 = TIMER(1000);
 	sw_timer test2 = TIMER(500);
 	sw_timer test3 = TIMER(100);
-	
+    
 	bool state = false;
-	pmp_6800_write_command(0x40);
-	pmp_6800_write_command(0xA6);
-	pmp_6800_write_command(0x81);
-	pmp_6800_write_command(0x7F);
-	pmp_6800_write_command(0xD5);
-	pmp_6800_write_command(0x40);
-	pmp_6800_write_command(0xD9);
-	pmp_6800_write_command(0x44);
-	pmp_6800_write_command(0xA1);
-	pmp_6800_write_command(0xC8);
-	pmp_6800_write_command(0xAF);
+    ssd1305_enable();
+	
 	
 	while(1)
 	{

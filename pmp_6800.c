@@ -18,6 +18,46 @@
 
 #include "ports.h"
 
+static void
+set_pb2div(uint8_t setting)
+{
+    volatile uint32_t int_status;
+    volatile uint32_t dma_suspend;
+
+    // Disable global interrupt
+    int_status = __builtin_get_isr_state();
+    __builtin_disable_interrupts();
+
+    // Suspend DMA
+    dma_suspend = DMACONbits.SUSPEND;
+    if (dma_suspend == 0)
+    {
+        DMACONSET = _DMACON_SUSPEND_MASK;
+        while (DMACONbits.DMABUSY == 1);
+    }
+
+    /* Unlock */
+    SYSKEY = 0x00000000;
+    SYSKEY = 0xAA996655;
+    SYSKEY = 0x556699AA;
+
+    /* PBCLK2: PMP, I2C, UART, SPI */
+    while (PB2DIVbits.PBDIVRDY == 0);
+    PB2DIVbits.PBDIV = setting;
+    PB2DIVbits.ON = 1;
+
+
+    /* Lock */
+    SYSKEY = 0x33333333;
+    
+    if (dma_suspend == 0)
+    {
+        DMACONCLR = _DMACON_SUSPEND_MASK;
+    }
+
+    __builtin_set_isr_state(int_status);
+}
+
 void
 pmp_6800_init()
 {
@@ -25,18 +65,16 @@ pmp_6800_init()
 	PMDC_PORT = 0;
 	PMDC_TRIS = PORT_OUTPUT;
 	
-	PB2DIVbits.ON = 0;
-	while (!PB2DIVbits.PBDIVRDY) {}
-	PB2DIVbits.PBDIV = 13;
-	PB2DIVbits.ON = 1;
+	set_pb2div(6);
 	
 	PMCONbits.DUALBUF = 1;
-	PMCONbits.SIDL = 1;
+	PMCONbits.SIDL = 0;
 	PMCONbits.ADRMUX = 0b00;
 	PMCONbits.PMPTTL = 0;
 	PMCONbits.PTWREN = 1;
 	PMCONbits.PTRDEN = 1;
 	PMCONbits.CSF = 0b00;
+    PMCONbits.ALP = 1;
 	PMCONbits.CS2P = 0;
 	PMCONbits.CS1P = 0;
 	PMCONbits.WRSP = 1;
@@ -46,12 +84,17 @@ pmp_6800_init()
 	PMMODEbits.INCM = 0b00;
 	PMMODEbits.MODE16 = 0;
 	PMMODEbits.MODE = 0b11;
-	PMMODEbits.WAITB = 0b00;
-	PMMODEbits.WAITM = 0b00;
-	PMMODEbits.WAITE = 0b00;
+	PMMODEbits.WAITB = 0b11;
+	PMMODEbits.WAITM = 0b0011;
+	PMMODEbits.WAITE = 0b11;
 	
 	PMAENbits.PTEN = 0b0100000000000000;
 	PMADDRbits.CS1 = 1;
+    
+    //mPMPClearIntFlag();
+    //mPMPSetIntPriority(0);
+    //mPMPSetIntSubPriority(0);
+    //mPMPIntEnable();
 	
 	PMCONbits.ON = 1;
 }
