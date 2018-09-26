@@ -8,6 +8,8 @@
       <itemPath>ports.h</itemPath>
       <itemPath>sw_timer.h</itemPath>
       <itemPath>ADC.h</itemPath>
+      <itemPath>pmp_6800.h</itemPath>
+      <itemPath>ssd1305.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -23,6 +25,8 @@
       <itemPath>sw_timer.c</itemPath>
       <itemPath>main-old.c</itemPath>
       <itemPath>ADC.c</itemPath>
+      <itemPath>pmp_6800.c</itemPath>
+      <itemPath>ssd1305.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -268,6 +272,7 @@
         <property key="UART5" value="true"/>
         <property key="UART6" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>

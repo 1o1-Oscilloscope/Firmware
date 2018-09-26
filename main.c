@@ -2,9 +2,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/attribs.h>
+
 #include "ports.h"
 #include "leds.h"
 #include "sw_timer.h"
+#include "pmp_6800.h"
+#include "ssd1305.h"
 
 //----------------------------------------------------------
 //                         BF1SEQ0
@@ -36,17 +39,43 @@ int main(void)
 	__builtin_enable_interrupts(); // Global Interrupt Enable 
 	
 	ports_init();
+	pmp_6800_init();
+	ssd1305_init();
 	init_sw_timer();
 
 	sw_timer test1 = TIMER(1000);
 	sw_timer test2 = TIMER(500);
 	sw_timer test3 = TIMER(100);
 	
+	bool state = false;
+	pmp_6800_write_command(0x40);
+	pmp_6800_write_command(0xA6);
+	pmp_6800_write_command(0x81);
+	pmp_6800_write_command(0x7F);
+	pmp_6800_write_command(0xD5);
+	pmp_6800_write_command(0x40);
+	pmp_6800_write_command(0xD9);
+	pmp_6800_write_command(0x44);
+	pmp_6800_write_command(0xA1);
+	pmp_6800_write_command(0xC8);
+	pmp_6800_write_command(0xAF);
+	
 	while(1)
 	{
 		if (tmr_expired(test1)) {
 			reset_timer(&test1);
 			LED_Toggle(LED_1);
+			
+			if (state)
+			{
+				pmp_6800_write_command(0xA4);
+				state = false;
+			}
+			else
+			{
+				pmp_6800_write_command(0xA5);
+				state = true;
+			}
 		}
 		if (tmr_expired(test2)) {
 			reset_timer(&test2);
@@ -54,7 +83,16 @@ int main(void)
 		}
 		if (tmr_expired(test3)) {
 			reset_timer(&test3);
-			LED_Toggle(LED_3);
+			
+			uint8_t status = pmp_6800_read_status();
+			if (status & 0b01000000)
+			{
+				LED_On(LED_3);
+			}
+			else
+			{
+				LED_Off(LED_3);
+			}
 		}
 	}
 }
