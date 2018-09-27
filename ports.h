@@ -15,10 +15,6 @@
 #define LED_3_PORT     PORTGbits.RG8
 #define LED_3_TRIS     TRISGbits.TRISG8
 
-#define PMDC_LAT  LATDbits.LATD9
-#define PMDC_PORT PORTDbits.RD9
-#define PMDC_TRIS TRISDbits.TRISD9
-
 #define OLED_RES_LAT  LATDbits.LATD10
 #define OLED_RES_PORT PORTDbits.RD10
 #define OLED_RES_TRIS TRISDbits.TRISD10

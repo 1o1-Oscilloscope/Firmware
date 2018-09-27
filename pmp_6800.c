@@ -61,11 +61,11 @@ set_pb2div(uint8_t setting)
 void
 pmp_6800_init()
 {
-	PMDC_LAT = LOW;
-	PMDC_PORT = 0;
-	PMDC_TRIS = PORT_OUTPUT;
-	
 	set_pb2div(6);
+    
+    IEC4bits.PMPEIE = 0;
+    IEC4bits.PMPIE = 0;
+    PMCONbits.ON = 0;
 	
 	PMCONbits.DUALBUF = 1;
 	PMCONbits.SIDL = 0;
@@ -73,9 +73,9 @@ pmp_6800_init()
 	PMCONbits.PMPTTL = 0;
 	PMCONbits.PTWREN = 1;
 	PMCONbits.PTRDEN = 1;
-	PMCONbits.CSF = 0b00;
+	PMCONbits.CSF = 0b10;
     PMCONbits.ALP = 1;
-	PMCONbits.CS2P = 0;
+	PMCONbits.CS2P = 1;
 	PMCONbits.CS1P = 0;
 	PMCONbits.WRSP = 1;
 	PMCONbits.RDSP = 1;
@@ -84,17 +84,15 @@ pmp_6800_init()
 	PMMODEbits.INCM = 0b00;
 	PMMODEbits.MODE16 = 0;
 	PMMODEbits.MODE = 0b11;
-	PMMODEbits.WAITB = 0b11;
-	PMMODEbits.WAITM = 0b0011;
-	PMMODEbits.WAITE = 0b11;
+	PMMODEbits.WAITB = 0b01;
+	PMMODEbits.WAITM = 0b0001;
+	PMMODEbits.WAITE = 0b01;
 	
-	PMAENbits.PTEN = 0b0100000000000000;
-	PMADDRbits.CS1 = 1;
-    
-    //mPMPClearIntFlag();
-    //mPMPSetIntPriority(0);
-    //mPMPSetIntSubPriority(0);
-    //mPMPIntEnable();
+	PMAENbits.PTEN = 0b1100000000000000;
+    PMWADDRbits.WCS1 = 1;
+    PMRADDRbits.RCS1 = 1;
+	PMWADDRbits.WCS2 = 0;
+    PMRADDRbits.RCS2 = 0;
 	
 	PMCONbits.ON = 1;
 }
@@ -103,33 +101,35 @@ pmp_6800_init()
 void
 pmp_6800_write_command(uint8_t command)
 {
-	PMDC_LAT = LOW;
-	PMDOUTbits.DATAOUT = command;
+	PMWADDRbits.WCS2 = 0;
+	PMDOUT = command;
 	while (PMMODEbits.BUSY) {}
 }
 
 uint8_t
 pmp_6800_read_status()
 {
-	PMDC_LAT = LOW;
-	PMCONbits.RDSTART = 1;
-	while (PMCONbits.RDSTART) {}
-	return (uint8_t)PMRDINbits.RDATAIN;
+	PMRADDRbits.RCS2 = 0;
+	while (PMMODEbits.BUSY) {}
+    uint16_t inter = PMRDIN;
+	while (PMMODEbits.BUSY) {}
+    inter = PMRDIN;
+	return (inter & 0xFF);
 }
 
 void
 pmp_6800_write_data(uint8_t data)
 {
-	PMDC_LAT = HIGH;
-	PMDOUTbits.DATAOUT = data;
+	PMWADDRbits.WCS2 = 1;
+	PMDOUT = data;
 	while (PMMODEbits.BUSY) {}
 }
 
 uint8_t
 pmp_6800_read_data()
 {
-	PMDC_LAT = HIGH;
-	PMCONbits.RDSTART = 1;
-	while (PMCONbits.RDSTART) {}
-	return (uint8_t)PMRDINbits.RDATAIN;
+	PMRADDRbits.RCS2 = 1;
+	while (PMMODEbits.BUSY) {}
+    uint16_t inter = PMRDIN;
+	return (inter & 0xFF);
 }

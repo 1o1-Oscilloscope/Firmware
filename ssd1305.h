@@ -17,6 +17,14 @@
 
 #include <xc.h>
 
+#define XALG_START_COLUMN 18
+#define XALG_COLUMNS 96
+#define XALG_END_COLUMN (XALG_START_COLUMN + XALG_COLUMNS - 1)
+#define XALG_ROWS 64
+#define XALG_START_PAGE 0
+#define XALG_PAGES (XALG_ROWS / 8)
+#define XALG_END_PAGE (XALG_START_PAGE + XALG_PAGES - 1)
+
 #ifdef	__cplusplus
 extern "C"
 {
@@ -27,6 +35,8 @@ void ssd1305_init();
 
 void ssd1305_enable();
 void ssd1305_disable();
+
+void ssd1305_clear();
 
 
 #ifdef	__cplusplus

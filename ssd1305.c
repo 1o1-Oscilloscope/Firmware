@@ -21,7 +21,7 @@ ssd1305_init()
 {
 	OLED_RES_TRIS = PORT_OUTPUT;
 	OLED_RES_PORT = 0;
-	OLED_RES_LAT = HIGH;
+	OLED_RES_LAT = LOW;
 }
 
 
@@ -49,4 +49,32 @@ void
 ssd1305_disable()
 {
 	OLED_RES_LAT = LOW;
+}
+
+static void
+ssd1305_gddr_setup()
+{
+    pmp_6800_write_command(0x20);
+    pmp_6800_write_command(0x00);
+    pmp_6800_write_command(0x21);
+    pmp_6800_write_command(XALG_START_COLUMN);
+    pmp_6800_write_command(XALG_END_COLUMN);
+    pmp_6800_write_command(0x22);
+    pmp_6800_write_command(XALG_START_PAGE);
+    pmp_6800_write_command(XALG_END_PAGE);
+}
+
+void
+ssd1305_clear()
+{
+    ssd1305_gddr_setup();
+    
+    uint8_t page, column;
+    for (page = XALG_START_PAGE; page <= XALG_END_PAGE; page++)
+    {
+        for (column = XALG_START_COLUMN; column <= XALG_END_COLUMN; column++)
+        {
+            pmp_6800_write_data(0);
+        }
+    }
 }

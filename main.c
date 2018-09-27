@@ -49,6 +49,7 @@ int main(void)
     
 	bool state = false;
     ssd1305_enable();
+    ssd1305_clear();
 	
 	
 	while(1)
@@ -74,16 +75,7 @@ int main(void)
 		}
 		if (tmr_expired(test3)) {
 			reset_timer(&test3);
-			
-			uint8_t status = pmp_6800_read_status();
-			if (status & 0b01000000)
-			{
-				LED_On(LED_3);
-			}
-			else
-			{
-				LED_Off(LED_3);
-			}
+			LED_Toggle(LED_3);
 		}
 	}
 }
