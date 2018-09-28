@@ -22,12 +22,12 @@ extern "C" {
 #endif
 
 
-void pmp_6800_init();
+void pmp_6800_init ();
 
-void    pmp_6800_write_command(uint8_t command);
-uint8_t pmp_6800_read_status();
-void    pmp_6800_write_data(uint8_t data);
-uint8_t pmp_6800_read_data();
+void    pmp_6800_write_command (uint8_t command);
+uint8_t pmp_6800_read_status   ();
+void    pmp_6800_write_data    (uint8_t data);
+uint8_t pmp_6800_read_data     ();
 
 
 #ifdef __cplusplus

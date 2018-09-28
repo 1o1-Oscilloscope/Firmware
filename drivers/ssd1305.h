@@ -13,9 +13,12 @@
 */
 
 #ifndef SSD1305_H
-#define	SSD1305_H
+#define SSD1305_H
 
 #include <xc.h>
+
+#include "../common/screen.h"
+#include "../graphics/packed_graphics.h"
 
 #define XALG_START_COLUMN 18
 #define XALG_COLUMNS 96
@@ -31,12 +34,14 @@ extern "C"
 #endif
 
 
-void ssd1305_init();
+void ssd1305_init ();
 
-void ssd1305_enable();
-void ssd1305_disable();
+void ssd1305_enable ();
+void ssd1305_disable ();
 
-void ssd1305_clear();
+void ssd1305_clear ();
+void ssd1305_write_all (packed_graphics_t * graphics);
+void ssd1305_write_all_screen (screen_t * screen);
 
 
 #ifdef	__cplusplus

@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
+<configurationDescriptor version="65">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="f1" displayName="common" projectFiles="true">
+        <itemPath>common/screen.h</itemPath>
+        <itemPath>common/sw_timer.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f2" displayName="drivers" projectFiles="true">
+        <itemPath>drivers/ADC.h</itemPath>
+        <itemPath>drivers/pmp_6800.h</itemPath>
+        <itemPath>drivers/ssd1305.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f3" displayName="graphics" projectFiles="true">
+        <itemPath>graphics/packed_graphics.h</itemPath>
+        <itemPath>graphics/graphics.h</itemPath>
+      </logicalFolder>
       <itemPath>leds.h</itemPath>
       <itemPath>ports.h</itemPath>
-      <itemPath>sw_timer.h</itemPath>
-      <itemPath>ADC.h</itemPath>
-      <itemPath>pmp_6800.h</itemPath>
-      <itemPath>ssd1305.h</itemPath>
+      <itemPath>scope_display.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -18,15 +28,25 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f1" displayName="common" projectFiles="true">
+        <itemPath>common/screen.c</itemPath>
+        <itemPath>common/sw_timer.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f2" displayName="drivers" projectFiles="true">
+        <itemPath>drivers/ADC.c</itemPath>
+        <itemPath>drivers/pmp_6800.c</itemPath>
+        <itemPath>drivers/ssd1305.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f3" displayName="graphics" projectFiles="true">
+        <itemPath>graphics/packed_graphics.c</itemPath>
+        <itemPath>graphics/graphics.c</itemPath>
+      </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>Config_Bits.c</itemPath>
       <itemPath>leds.c</itemPath>
       <itemPath>ports.c</itemPath>
-      <itemPath>sw_timer.c</itemPath>
       <itemPath>main-old.c</itemPath>
-      <itemPath>ADC.c</itemPath>
-      <itemPath>pmp_6800.c</itemPath>
-      <itemPath>ssd1305.c</itemPath>
+      <itemPath>scope_display.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -47,9 +67,12 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>2.05</languageToolchainVersion>
+        <languageToolchainVersion>2.10</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
+      <packs>
+        <pack name="PIC32MZ-EF_DFP" vendor="Microchip" version="1.0.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -74,8 +97,6 @@
         <makeCustomizationEnableLongLines>false</makeCustomizationEnableLongLines>
         <makeCustomizationNormalizeHexFile>false</makeCustomizationNormalizeHexFile>
       </makeCustomizationType>
-      <item path="ADC.c" ex="true" overriding="false">
-      </item>
       <C32>
         <property key="additional-warnings" value="false"/>
         <property key="addresss-attribute-use" value="false"/>
@@ -101,6 +122,7 @@
         <property key="use-cci" value="false"/>
         <property key="use-iar" value="false"/>
         <property key="use-indirect-calls" value="false"/>
+        <appendMe value="-std=c99"/>
       </C32>
       <C32-AR>
         <property key="additional-options-chop-files" value="false"/>
@@ -127,6 +149,7 @@
       </C32-AS>
       <C32-LD>
         <property key="additional-options-use-response-files" value="false"/>
+        <property key="additional-options-write-sla" value="false"/>
         <property key="allocate-dinit" value="false"/>
         <property key="code-dinit" value="false"/>
         <property key="ebase-addr" value=""/>
@@ -430,9 +453,12 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>ICD4Tool</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>2.05</languageToolchainVersion>
+        <languageToolchainVersion>2.10</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
+      <packs>
+        <pack name="PIC32MZ-EF_DFP" vendor="Microchip" version="1.0.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -508,6 +534,7 @@
       </C32-AS>
       <C32-LD>
         <property key="additional-options-use-response-files" value="false"/>
+        <property key="additional-options-write-sla" value="false"/>
         <property key="allocate-dinit" value="false"/>
         <property key="code-dinit" value="false"/>
         <property key="ebase-addr" value=""/>
@@ -645,7 +672,8 @@
         <property key="TIMER9" value="true"/>
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
-        <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="ToolFirmwareOption.UpdateOptions"
+                  value="ToolFirmwareOption.UseLatest"/>
         <property key="UART1" value="true"/>
         <property key="UART2" value="true"/>
         <property key="UART3" value="true"/>
