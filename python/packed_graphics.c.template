@@ -1,0 +1,26 @@
+/*
+ * Packed Graphics Interface
+ * 
+ * @Company
+ *   1o1 Oscilloscope Team
+ * 
+ * @File Name
+ *   packed_graphics.c
+ * 
+ * @Summary
+ *   Contains predefined bitmaps in packed_graphics_t format.
+*/
+
+#include "packed_graphics.h"
+
+#include <stdint.h>
+
+#include "../drivers/ssd1305.h"
+
+
+uint8_t logo_bytes[] = {{{0}}};
+packed_graphics_t graphics_logo = {{
+	{1},
+	{2},
+	logo_bytes
+}};
