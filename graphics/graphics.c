@@ -68,39 +68,88 @@ graphics_apply_mask (screen_t * image, screen_t * mask)
 	}
 }
 
-void
-graphics_draw_rect (screen_t * screen, s_coord_t x0, s_coord_t y0, s_coord_t x1,
+
+bool
+graphics_fill_rect (screen_t * screen, s_coord_t x0, s_coord_t y0, s_coord_t x1,
 					s_coord_t y1, s_pixel_t value)
 {
-	if (SPIXEL_CHECK(screen, x0, y0) && SPIXEL_CHECK(screen, x1, y1))
+	if (!(SPIXEL_CHECK(screen, x0, y0) && SPIXEL_CHECK(screen, x1, y1)))
 	{
-		for (s_coord_t x = x0; x <= x1; x++)
-		{
-			for (s_coord_t y = y0; y <= y1; y++)
-			{
-				SPIXEL(screen, x, y) = value;
-			}
-		}
+		return false;
 	}
-}
-
-void
-graphics_draw_line (screen_t * screen, s_coord_t x0, s_coord_t y0, s_coord_t x1,
-					s_coord_t y1, s_pixel_t value)
-{
-	if (SPIXEL_CHECK(screen, x0, y0) && SPIXEL_CHECK(screen, x1, y1))
+	
+	for (s_coord_t x = x0; x <= x1; x++)
 	{
-		int dx = x1 - x0;
-		int dy = y1 - y0;
-		unsigned int pmax = (unsigned int)SMAX(abs(dx), abs(dy));
-		float a = (float)(dx) / (float)(pmax);
-		float b = (float)(dy) / (float)(pmax);
-
-		for (unsigned int p = 0; p < pmax; p++)
+		for (s_coord_t y = y0; y <= y1; y++)
 		{
-			s_coord_t x = SMAX(SMIN(x0 + floorf(p * a), screen->width - 1), 0);
-			s_coord_t y = SMAX(SMIN(y0 + floorf(p * b), screen->height - 1), 0);
 			SPIXEL(screen, x, y) = value;
 		}
 	}
+	
+	return true;
+}
+
+bool
+graphics_draw_line (screen_t * screen, s_coord_t x0, s_coord_t y0, s_coord_t x1,
+					s_coord_t y1, s_pixel_t value)
+{
+	if (!(SPIXEL_CHECK(screen, x0, y0) && SPIXEL_CHECK(screen, x1, y1)))
+	{
+		return false;
+	}
+	
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+	unsigned int pmax = (unsigned int)SMAX(abs(dx), abs(dy));
+	float a = (float)(dx) / (float)(pmax);
+	float b = (float)(dy) / (float)(pmax);
+	
+	for (unsigned int p = 0; p < pmax; p++)
+	{
+		s_coord_t x = SMAX(SMIN(x0 + floorf(p * a), screen->width - 1), 0);
+		s_coord_t y = SMAX(SMIN(y0 + floorf(p * b), screen->height - 1), 0);
+		SPIXEL(screen, x, y) = value;
+	}
+	
+	return true;
+}
+
+
+bool
+graphics_overlay_data (screen_t * screen0, s_coord_t x0, s_coord_t y0,
+					s_coord_t width, s_coord_t height, screen_t * screen1,
+					s_coord_t x1, s_coord_t y1)
+{
+	if (!(SPIXEL_CHECK(screen0, x0, y0) && SPIXEL_CHECK(screen1, x1, y1)))
+	{
+		return false;
+	}
+	
+	if (x0 + width > screen0->width)
+	{
+		width = screen0->width - x0;
+	}
+	if (x1 + width > screen1->width)
+	{
+		width = screen1->width - x1;
+	}
+	if (y0 + height > screen0->height)
+	{
+		height = screen0->height - y0;
+	}
+	if (y1 + height > screen1->height)
+	{
+		height = screen1->height - y1;
+	}
+	
+	for (s_coord_t xi = 0; xi < width; xi++)
+	{
+		for (s_coord_t yi = 0; yi < height; yi++)
+		{
+			SPIXEL(screen1, x1 + xi, y1 + yi) |=
+					SPIXEL(screen0, x0 + xi, y0 + yi);
+		}
+	}
+	
+	return true;
 }

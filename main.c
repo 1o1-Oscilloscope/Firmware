@@ -26,6 +26,7 @@
 #include "drivers/ssd1305.h"
 #include "graphics/packed_graphics.h"
 #include "graphics/graphics.h"
+#include "graphics/font.h"
 
 // BF1SEQ0
 #pragma config TSEQ =       0x0000
@@ -82,7 +83,6 @@ int main(void)
     ssd1305_clear();
 	ssd1305_write_all(&graphics_logo);
 	sw_timer splash_timeout = TIMER(1500);
-	int lpos = 0;
 	
 	while(1)
 	{
@@ -112,21 +112,11 @@ int main(void)
 			{
 				// First run, draw some basic geometry and update timer to 30Hz
 				splash_timeout.length = 33;
-				graphics_draw_rect(&layer1,  0,  0, 20, 20, 1);
-				graphics_draw_line(&layer1, 20, 20, 60, 20, 1);
-				graphics_draw_line(&layer1, 20, 20, 60, 40, 1);
-				graphics_draw_line(&layer1, 20, 20, 60, 60, 1);
-				graphics_draw_line(&layer1, 20, 20, 40, 60, 1);
-				graphics_draw_line(&layer1, 20, 20, 20, 60, 1);
+				
+				font_write_simple("Standard Font Test:\n !\"#$%&'()*+,-./012345\
+6789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+						&layer1, 0, 0, 96);
 			}
-			
-			// Draw pivoting line
-			graphics_draw_rect(&layer2, 20, 20, 60, 60, 0);
-			float angle = (sinf(DEG2RADF(lpos)) + 1) * (float)M_PI_4;
-			s_coord_t x = (s_coord_t)floorf(40.0f * sinf(angle) + 0.5f);
-			s_coord_t y = (s_coord_t)floorf(40.0f * cosf(angle) + 0.5f);
-			graphics_draw_line(&layer2, 20, 20, 20 + x, 20 + y, 1);
-			lpos += 3;
 			
 			// Display layers
 			graphics_pack_layers(layers, LAYER_COUNT, &output, NULL);
