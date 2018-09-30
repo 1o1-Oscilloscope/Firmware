@@ -22,9 +22,9 @@
 
 font_error_t
 font_write (font_t * font, char * text, int length, screen_t * screen,
-			s_coord_t x0, s_coord_t y0, s_coord_t wrap_width)
+			s_vector_t origin, s_coord_t wrap_width, bool invert)
 {
-	if (!SPIXEL_CHECK(screen, x0, y0))
+	if (!S_VECTOR_CHECK(screen, origin))
 	{
 		return FONT_ERROR_OFF_SCREEN;
 	}
@@ -42,16 +42,15 @@ font_write (font_t * font, char * text, int length, screen_t * screen,
 		}
 	}
 	
-	s_coord_t x = x0;
-	s_coord_t y = y0;
+	s_vector_t pos = origin;
 	for (int i = 0; i < length; i++) {
 		if (text[i] == FONT_LINE_FEED)
 		{
-			y += font->line_height;
+			pos.y += font->line_height;
 		}
 		else if (text[i] == FONT_CARRIAGE_RETURN)
 		{
-			x = x0;
+			pos.x = origin.x;
 		}
 		else
 		{
@@ -67,20 +66,28 @@ font_write (font_t * font, char * text, int length, screen_t * screen,
 				glyph->pixels
 			};
 			
-			if ((wrap_width > 0) && ((x + glyph->width) > x0 + wrap_width))
+			if ((wrap_width > 0) &&
+					((pos.x + glyph->width) > origin.x + wrap_width))
 			{
-				y += font->line_height;
-				x = x0;
+				pos.y += font->line_height;
+				pos.x = origin.x;
 			}
 			
-			graphics_overlay_data(&glyph_inter, 0, 0, glyph->width,
-					glyph->height, screen, x, y + glyph->y_offset);
-
-			x += glyph->width + font->spacing;
+			graphics_overlay_data(
+					&glyph_inter,
+					S_VECTOR_ZERO,
+					S_VECTOR(glyph->width, glyph->height),
+					screen,
+					S_VECTOR_ADD(pos, S_VECTOR(0, glyph->y_offset)),
+					invert
+				);
+			
+			pos.x += glyph->width + font->spacing;
 		}
 	}
 	
-	if (!SPIXEL_CHECK(screen, x - font->spacing, y + font->line_height - 1))
+	if (!S_COORD_CHECK(screen, pos.x - font->spacing,
+			pos.y + font->line_height - 1))
 	{
 		return FONT_ERROR_OFF_SCREEN_PARTIAL;
 	}
@@ -91,8 +98,8 @@ font_write (font_t * font, char * text, int length, screen_t * screen,
 }
 
 font_error_t
-font_write_simple (char * text, screen_t * screen, s_coord_t x0, s_coord_t y0,
-				   s_coord_t wrap_width)
+font_write_simple (char * text, screen_t * screen, s_vector_t origin,
+				   s_coord_t wrap_width, bool invert)
 {
 	char processed[FONT_SIMPLE_MAX_LENGTH * 2] = { 0 };
 	int length = 0;
@@ -113,6 +120,6 @@ font_write_simple (char * text, screen_t * screen, s_coord_t x0, s_coord_t y0,
 			length++;
 		}
 	}
-	return font_write(&font_standard, processed, length, screen, x0, y0,
-			wrap_width);
+	return font_write(&font_standard, processed, length, screen, origin,
+			wrap_width, invert);
 }

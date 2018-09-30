@@ -121,7 +121,7 @@ ssd1305_write_all_screen (screen_t * screen)
 {
 	ssd1305_gddr_setup_full();
 	
-	if ((XALG_COLUMNS != screen->width) || (XALG_ROWS != screen->height))
+	if ((XALG_COLUMNS != screen->size.x) || (XALG_ROWS != screen->size.y))
 	{
 		return;
 	}

@@ -17,6 +17,7 @@
 #include "../common/screen.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "packed_graphics.h"
 
@@ -29,14 +30,21 @@ void graphics_pack_layers (screen_t ** layers, uint8_t count,
 						   packed_graphics_t * out, bool * enable);
 void graphics_apply_mask (screen_t * image, screen_t * mask);
 
-bool graphics_fill_rect (screen_t * screen, s_coord_t x0, s_coord_t y0,
-						 s_coord_t x1, s_coord_t y1, s_pixel_t value);
-bool graphics_draw_line (screen_t * screen, s_coord_t x0, s_coord_t y0,
-						 s_coord_t x1, s_coord_t y1, s_pixel_t value);
+bool graphics_fill_rect (screen_t * screen, s_vector_t v0, s_vector_t v1,
+						 s_pixel_t value);
+bool graphics_draw_line (screen_t * screen, s_vector_t v0, s_vector_t v1,
+						 s_pixel_t value);
+bool graphics_fast_line (screen_t * screen, s_vector_t v0, s_coord_t length,
+						 bool vertical, s_pixel_t value);
+bool graphics_draw_rect (screen_t * screen, s_vector_t v0, s_vector_t v1,
+						 s_pixel_t value);
 
-bool graphics_overlay_data (screen_t * screen0, s_coord_t x0, s_coord_t y0,
-							s_coord_t width, s_coord_t height,
-							screen_t * screen1, s_coord_t x1, s_coord_t y1);
+bool graphics_copy_data     (screen_t * screen0, s_vector_t source,
+							 s_vector_t size, screen_t * screen1,
+							 s_vector_t dest);
+bool graphics_overlay_data  (screen_t * screen0, s_vector_t source,
+							 s_vector_t size, screen_t * screen1,
+							 s_vector_t dest, bool subtract);
 
 
 #ifdef	__cplusplus

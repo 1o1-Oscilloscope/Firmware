@@ -65,10 +65,11 @@ extern font_glyph_t font_default_glyph;
 
 
 font_error_t font_write        (font_t * font, char * text, int length,
-								screen_t * screen, s_coord_t x0, s_coord_t y0,
-								s_coord_t wrap_width);
-font_error_t font_write_simple (char * text, screen_t * screen, s_coord_t x0,
-								s_coord_t y0, s_coord_t wrap_width);
+								screen_t * screen, s_vector_t origin,
+								s_coord_t wrap_width, bool invert);
+font_error_t font_write_simple (char * text, screen_t * screen,
+								s_vector_t origin, s_coord_t wrap_width,
+								bool invert);
 
 
 #ifdef	__cplusplus

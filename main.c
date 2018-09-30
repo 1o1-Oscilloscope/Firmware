@@ -71,12 +71,25 @@ int main(void)
     
 	// Set up graphics objects
 	s_pixel_t layer1_values[XALG_COLUMNS][XALG_ROWS] = { 0 };
-	screen_t layer1 = { XALG_COLUMNS, XALG_ROWS, (s_pixel_t *)layer1_values };
+	screen_t layer1 = {
+		S_VECTOR(XALG_COLUMNS, XALG_ROWS),
+		(s_pixel_t *)layer1_values
+	};
 	s_pixel_t layer2_values[XALG_COLUMNS][XALG_ROWS] = { 0 };
-	screen_t layer2 = { XALG_COLUMNS, XALG_ROWS, (s_pixel_t *)layer2_values };
-	screen_t * layers[LAYER_COUNT] = { &layer1, &layer2 };
+	screen_t layer2 = {
+		S_VECTOR(XALG_COLUMNS, XALG_ROWS),
+		(s_pixel_t *)layer2_values
+	};
+	screen_t * layers[LAYER_COUNT] = {
+		&layer1,
+		&layer2
+	};
 	uint8_t output_values[XALG_COLUMNS][XALG_PAGES] = { 0 };
-	packed_graphics_t output = { XALG_COLUMNS, XALG_PAGES, (uint8_t *)output_values };
+	packed_graphics_t output = {
+		XALG_COLUMNS,
+		XALG_PAGES,
+		(uint8_t *)output_values
+	};
 	
 	// Set up screen and display flash
     ssd1305_enable();
@@ -86,21 +99,11 @@ int main(void)
 	
 	while(1)
 	{
-		// Blink LEDs
-		if (sw_timer_expired(test1))
-		{
-			sw_timer_reset(&test1);
-			LED_Toggle(LED_1);
-		}
+		// Blink LED
 		if (sw_timer_expired(test2))
 		{
 			sw_timer_reset(&test2);
 			LED_Toggle(LED_2);
-		}
-		if (sw_timer_expired(test3))
-		{
-			sw_timer_reset(&test3);
-			LED_Toggle(LED_3);
 		}
 		
 		// Graphics test/example
@@ -113,9 +116,18 @@ int main(void)
 				// First run, draw some basic geometry and update timer to 30Hz
 				splash_timeout.length = 33;
 				
-				font_write_simple("Standard Font Test:\n !\"#$%&'()*+,-./012345\
-6789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-						&layer1, 0, 0, 96);
+				font_write_simple("This is Text",
+						&layer1, S_VECTOR(1, 1), 0, false);
+				graphics_fill_rect(&layer1, S_VECTOR(0, 11),
+						S_VECTOR(layer1.size.x - 1, 21), true);
+				font_write_simple("This is Inverted Text",
+						&layer1, S_VECTOR(1, 12), 0, true);
+				graphics_draw_rect(&layer1, S_VECTOR(32, 27),
+						S_VECTOR(61, 56), true);
+				graphics_fill_rect(&layer1, S_VECTOR(35, 30),
+						S_VECTOR(58, 53), true);
+				graphics_draw_line(&layer1, S_VECTOR(33, 28),
+						S_VECTOR(60, 55), false);
 			}
 			
 			// Display layers
