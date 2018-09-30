@@ -31,6 +31,7 @@ void graphics_pack_layers (screen_t ** layers, uint8_t count,
 
 bool graphics_fill_rect   (screen_t * screen, s_vector_t v0, s_vector_t v1,
 						   s_pixel_t value);
+void graphics_fill_screen (screen_t * screen, s_pixel_t value);
 bool graphics_draw_line   (screen_t * screen, s_vector_t v0, s_vector_t v1,
 						   s_pixel_t value);
 bool graphics_fast_line   (screen_t * screen, s_vector_t v0, s_coord_t length,

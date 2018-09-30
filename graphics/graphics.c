@@ -79,6 +79,19 @@ graphics_fill_rect (screen_t * screen, s_vector_t v0, s_vector_t v1,
 	return true;
 }
 
+
+void
+graphics_fill_screen (screen_t * screen, s_pixel_t value)
+{
+	for (s_coord_t x = 0; x < screen->size.x; x++)
+	{
+		for (s_coord_t y = 0; y < screen->size.y; y++)
+		{
+			SPIXEL(screen, x, y) = value;
+		}
+	}
+}
+
 bool
 graphics_draw_line (screen_t * screen, s_vector_t v0, s_vector_t v1,
 					s_pixel_t value)

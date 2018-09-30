@@ -19,11 +19,12 @@
 #include <math.h>
 
 #include "ports.h"
-#include "leds.h"
 #include "common/sw_timer.h"
 #include "common/screen.h"
 #include "drivers/pmp_6800.h"
 #include "drivers/ssd1305.h"
+#include "drivers/buttons.h"
+#include "drivers/leds.h"
 #include "graphics/packed_graphics.h"
 #include "graphics/graphics.h"
 #include "graphics/font.h"
@@ -34,7 +35,7 @@
 
 #define VirtAddr_TO_PhysAddr(v) ((unsigned long)(v) & 0x1FFFFFFF)
 
-#define LAYER_COUNT 2
+#define LAYER_COUNT 3
 #define DEG2RADF(d) ((float)(d) / 180.0f * (float)M_PI)
 
 
@@ -61,7 +62,6 @@ int main(void)
 	// Subsystem initialization
 	ports_init();
 	pmp_6800_init();
-	ssd1305_init();
 	sw_timer_init();
 	
 	// Timers to blink LEDs with
@@ -80,13 +80,20 @@ int main(void)
 		S_VECTOR(XALG_COLUMNS, XALG_ROWS),
 		(s_pixel_t *)layer2_values
 	};
+	s_pixel_t layer3_values[XALG_COLUMNS][XALG_ROWS] = { 0 };
+	screen_t layer3 = {
+		S_VECTOR(XALG_COLUMNS, XALG_ROWS),
+		(s_pixel_t *)layer3_values
+	};
 	screen_t * layers[LAYER_COUNT] = {
 		&layer1,
-		&layer2
+		&layer2,
+		&layer3
 	};
 	bool layer_is_mask[LAYER_COUNT] = {
 		false,
-		true
+		true,
+		false
 	};
 	uint8_t output_values[XALG_COLUMNS][XALG_PAGES] = { 0 };
 	packed_graphics_t output = {
@@ -94,12 +101,30 @@ int main(void)
 		XALG_PAGES,
 		(uint8_t *)output_values
 	};
+			
+	// Draw base test graphical elements
+	font_write_simple("This is Text", &layer1, S_VECTOR(1, 1), 0, false);
+	graphics_fill_rect(&layer1, S_VECTOR(0, 11),
+			S_VECTOR(layer1.size.x - 1, 21), true);
+	font_write_simple("This is Inverted Text", &layer1, S_VECTOR(1, 12), 0,
+			true);
+	graphics_draw_rect(&layer1, S_VECTOR(32, 27), S_VECTOR(61, 56), true);
+	graphics_fill_rect(&layer1, S_VECTOR(35, 30), S_VECTOR(58, 53), true);
+	graphics_draw_line(&layer1, S_VECTOR(33, 28), S_VECTOR(60, 55), false);
+	graphics_dotted_line(&layer1, S_VECTOR( 5, 27), 30, true, 1, true);
+	graphics_dotted_line(&layer1, S_VECTOR(10, 27), 30, true, 2, true);
+	graphics_dotted_line(&layer1, S_VECTOR(15, 27), 30, true, 3, true);
+	graphics_dotted_line(&layer1, S_VECTOR(20, 27), 30, true, 4, true);
+	graphics_dotted_line(&layer1, S_VECTOR(25, 27), 30, true, 5, true);
+	graphics_fill_screen(&layer2, true);
+	graphics_fill_screen(&layer3, false);
 	
 	// Set up screen and display flash
     ssd1305_enable();
     ssd1305_clear();
 	ssd1305_write_all(&graphics_logo);
 	sw_timer splash_timeout = TIMER(1500);
+	bool state = false;
 	
 	while(1)
 	{
@@ -107,38 +132,31 @@ int main(void)
 		if (sw_timer_expired(test2))
 		{
 			sw_timer_reset(&test2);
-			LED_Toggle(LED_2);
+			led_toggle(LED_2);
 		}
 		
 		// Graphics test/example (one-shot))
 		if (sw_timer_expired(splash_timeout))
 		{
-			splash_timeout.running = false;
-			
-			// Draw test graphical elements
-			font_write_simple("This is Text",
-					&layer1, S_VECTOR(1, 1), 0, false);
-			graphics_fill_rect(&layer1, S_VECTOR(0, 11),
-					S_VECTOR(layer1.size.x - 1, 21), true);
-			font_write_simple("This is Inverted Text",
-					&layer1, S_VECTOR(1, 12), 0, true);
-			graphics_draw_rect(&layer1, S_VECTOR(32, 27),
-					S_VECTOR(61, 56), true);
-			graphics_fill_rect(&layer1, S_VECTOR(35, 30),
-					S_VECTOR(58, 53), true);
-			graphics_draw_line(&layer1, S_VECTOR(33, 28),
-					S_VECTOR(60, 55), false);
-			graphics_dotted_line(&layer1, S_VECTOR( 5, 27), 30, true, 1, true);
-			graphics_dotted_line(&layer1, S_VECTOR(10, 27), 30, true, 2, true);
-			graphics_dotted_line(&layer1, S_VECTOR(15, 27), 30, true, 3, true);
-			graphics_dotted_line(&layer1, S_VECTOR(20, 27), 30, true, 4, true);
-			graphics_dotted_line(&layer1, S_VECTOR(25, 27), 30, true, 5, true);
-			
-			// Test mask
-			graphics_fill_rect(&layer2, S_VECTOR_ZERO,
-					S_VECTOR_SUB(layer2.size, S_VECTOR_ONE), true);
-			graphics_fill_rect(&layer2, S_VECTOR(48, 36), S_VECTOR(95, 47),
-					false);
+			sw_timer_reset(&splash_timeout);
+			if (!state && button_read(BUTTON_1))
+			{ // Display toast if button pressed.
+				graphics_fill_screen(&layer2, false); // stand-in
+				// TODO: Add toast code
+				
+				splash_timeout.length = 3000;
+				state = true;
+				led_on(LED_1);
+			}
+			else
+			{ // Toast already displayed, reset.
+				graphics_fill_screen(&layer2, true);
+				graphics_fill_screen(&layer3, false);
+				
+				splash_timeout.length = 33;
+				state = false;
+				led_off(LED_1);
+			}
 			
 			// Display layers
 			graphics_pack_layers(layers, LAYER_COUNT, &output, layer_is_mask);

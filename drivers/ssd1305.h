@@ -34,8 +34,6 @@ extern "C"
 #endif
 
 
-void ssd1305_init ();
-
 void ssd1305_enable ();
 void ssd1305_disable ();
 

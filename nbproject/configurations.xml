@@ -12,13 +12,14 @@
         <itemPath>drivers/ADC.h</itemPath>
         <itemPath>drivers/pmp_6800.h</itemPath>
         <itemPath>drivers/ssd1305.h</itemPath>
+        <itemPath>drivers/buttons.h</itemPath>
+        <itemPath>drivers/leds.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="graphics" projectFiles="true">
         <itemPath>graphics/packed_graphics.h</itemPath>
         <itemPath>graphics/graphics.h</itemPath>
         <itemPath>graphics/font.h</itemPath>
       </logicalFolder>
-      <itemPath>leds.h</itemPath>
       <itemPath>ports.h</itemPath>
       <itemPath>scope_display.h</itemPath>
     </logicalFolder>
@@ -36,6 +37,8 @@
         <itemPath>drivers/ADC.c</itemPath>
         <itemPath>drivers/pmp_6800.c</itemPath>
         <itemPath>drivers/ssd1305.c</itemPath>
+        <itemPath>drivers/buttons.c</itemPath>
+        <itemPath>drivers/leds.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="graphics" projectFiles="true">
         <itemPath>graphics/packed_graphics.c</itemPath>
@@ -44,11 +47,9 @@
         <itemPath>graphics/font_resource.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
-      <itemPath>Config_Bits.c</itemPath>
-      <itemPath>leds.c</itemPath>
       <itemPath>ports.c</itemPath>
-      <itemPath>main-old.c</itemPath>
       <itemPath>scope_display.c</itemPath>
+      <itemPath>config_bits.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -432,20 +433,6 @@
         <property key="programoptions.testmodeentrymethod" value="VDDFirst"/>
         <property key="voltagevalue" value="3.3"/>
       </ICD4Tool>
-      <item path="main-old.c" ex="true" overriding="false">
-        <C32>
-        </C32>
-        <C32-AR>
-        </C32-AR>
-        <C32-AS>
-        </C32-AS>
-        <C32-LD>
-        </C32-LD>
-        <C32CPP>
-        </C32CPP>
-        <C32Global>
-        </C32Global>
-      </item>
     </conf>
     <conf name="Test" type="2">
       <toolsSet>

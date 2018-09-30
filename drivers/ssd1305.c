@@ -22,19 +22,11 @@
 #include "../drivers/pmp_6800.h"
 #include "../graphics/packed_graphics.h"
 
-void
-ssd1305_init ()
-{
-	OLED_RES_TRIS = PORT_OUTPUT;
-	OLED_RES_PORT = 0;
-	OLED_RES_LAT = LOW;
-}
-
 
 void
 ssd1305_enable ()
 {
-	OLED_RES_LAT = HIGH;
+	OLED_RES_LAT = PIN_ON;
 	sw_timer wait_init = TIMER(3);
 	while (!sw_timer_expired(wait_init)) {}
 	
@@ -54,7 +46,7 @@ ssd1305_enable ()
 void
 ssd1305_disable ()
 {
-	OLED_RES_LAT = LOW;
+	OLED_RES_LAT = PIN_OFF;
 }
 
 static void

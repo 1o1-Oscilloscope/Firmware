@@ -14,7 +14,11 @@
 #ifndef FONT_H
 #define	FONT_H
 
+
+#include <stdbool.h>
+
 #include "../common/screen.h"
+
 
 #define FONT_ASCII_START     32
 #define FONT_ASCII_COUNT     95
@@ -23,6 +27,7 @@
 #define FONT_SIMPLE_MAX_LENGTH 256
 
 #define CONST_VECTOR(x, y) {x, y}
+
 
 #ifdef	__cplusplus
 extern "C"
@@ -42,6 +47,7 @@ typedef enum
 	FONT_ERROR_OFF_SCREEN,
 	FONT_ERROR_OFF_SCREEN_PARTIAL,
 } font_error_t;
+
 
 typedef struct
 {
