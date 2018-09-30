@@ -28,16 +28,17 @@ extern "C"
 
 void graphics_pack_layers (screen_t ** layers, uint8_t count,
 						   packed_graphics_t * out, bool * enable);
-void graphics_apply_mask (screen_t * image, screen_t * mask);
 
-bool graphics_fill_rect (screen_t * screen, s_vector_t v0, s_vector_t v1,
-						 s_pixel_t value);
-bool graphics_draw_line (screen_t * screen, s_vector_t v0, s_vector_t v1,
-						 s_pixel_t value);
-bool graphics_fast_line (screen_t * screen, s_vector_t v0, s_coord_t length,
-						 bool vertical, s_pixel_t value);
-bool graphics_draw_rect (screen_t * screen, s_vector_t v0, s_vector_t v1,
-						 s_pixel_t value);
+bool graphics_fill_rect   (screen_t * screen, s_vector_t v0, s_vector_t v1,
+						   s_pixel_t value);
+bool graphics_draw_line   (screen_t * screen, s_vector_t v0, s_vector_t v1,
+						   s_pixel_t value);
+bool graphics_fast_line   (screen_t * screen, s_vector_t v0, s_coord_t length,
+						   bool vertical, s_pixel_t value);
+bool graphics_dotted_line (screen_t * screen, s_vector_t v0, s_coord_t length,
+					       bool vertical, s_coord_t spacing, s_pixel_t value);
+bool graphics_draw_rect   (screen_t * screen, s_vector_t v0, s_vector_t v1,
+						   s_pixel_t value);
 
 bool graphics_copy_data     (screen_t * screen0, s_vector_t source,
 							 s_vector_t size, screen_t * screen1,

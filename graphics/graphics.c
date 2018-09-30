@@ -23,48 +23,38 @@
 
 void
 graphics_pack_layers (screen_t ** layers, uint8_t count,
-					  packed_graphics_t * out, bool * enable)
+					  packed_graphics_t * out, bool * mask)
 {
 	bool based = false;
 	for (uint8_t i = 0; i < count; i++)
 	{
-		if ((NULL == enable) || (enable[i]))
+		screen_t * layer = layers[i];
+		for (s_coord_t x = 0; x < SMIN(layer->size.x, out->columns); x++)
 		{
-			screen_t * layer = layers[i];
-			for (s_coord_t x = 0; x < SMIN(layer->size.x, out->columns); x++)
+			if (!based)
 			{
-				if (!based)
+				for (s_coord_t y = 0; y < out->pages; y++)
 				{
-					for (s_coord_t y = 0; y < out->pages; y++)
-					{
-						PGPIXEL(out, x, y) = 0;
-					}	
-				}
-				
-				for (s_coord_t y = 0; y < SMIN(layer->size.y, out->pages * 8);
-						y++)
+					PGPIXEL(out, x, y) = 0;
+				}	
+			}
+			
+			for (s_coord_t y = 0; y < SMIN(layer->size.y, out->pages * 8);
+					y++)
+			{
+				if ((NULL == mask) || (!mask[i]))
 				{
-					PGPIXEL(out, x, y / 8) |= 
+					PGPIXEL(out, x, y / 8) |=
 							((SPIXEL(layer, x, y) ? 1 : 0) << (y % 8));
 				}
-			}
-			based = true;
-		}
-	}
-}
-
-void
-graphics_apply_mask (screen_t * image, screen_t * mask)
-{
-	for (s_coord_t x = 0; x < SMIN(image->size.x, mask->size.y); x++)
-	{
-		for (s_coord_t y = 0; y < SMIN(image->size.y, mask->size.y); y++)
-		{
-			if (!SPIXEL(mask, x, y))
-			{
-				SPIXEL(image, x, y) = 0;
+				else
+				{
+					PGPIXEL(out, x, y / 8) &=~
+							((SPIXEL(layer, x, y) ? 0 : 1) << (y % 8));
+				}
 			}
 		}
+		based = true;
 	}
 }
 
@@ -138,6 +128,45 @@ graphics_fast_line (screen_t * screen, s_vector_t v0, s_coord_t length,
 	}
 	
 	for (s_coord_t i = 0; i < length; i++)
+	{
+		if (vertical)
+		{
+			SPIXEL_V(screen, S_VECTOR_ADD(v0, S_VECTOR(0, i))) = value;
+		}
+		else
+		{
+			SPIXEL_V(screen, S_VECTOR_ADD(v0, S_VECTOR(i, 0))) = value;
+		}
+	}
+	
+	return true;
+}
+
+bool
+graphics_dotted_line (screen_t * screen, s_vector_t v0, s_coord_t length,
+					  bool vertical, s_coord_t spacing, s_pixel_t value)
+{
+	if (length < 0)
+	{
+		if (vertical)
+		{
+			v0.y += (length + 1);
+		}
+		else
+		{
+			v0.x += (length + 1);
+		}
+		length = -length;
+	}
+	
+	if (!(S_VECTOR_CHECK(screen, v0) &&
+		(vertical || S_COORD_CHECK(screen, v0.x + length - 1, v0.y)) &&
+		(!vertical || S_COORD_CHECK(screen, v0.x, v0.y + length - 1))))
+	{
+		return false;
+	}
+	
+	for (s_coord_t i = 0; i < length; i += spacing)
 	{
 		if (vertical)
 		{

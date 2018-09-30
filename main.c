@@ -84,6 +84,10 @@ int main(void)
 		&layer1,
 		&layer2
 	};
+	bool layer_is_mask[LAYER_COUNT] = {
+		false,
+		true
+	};
 	uint8_t output_values[XALG_COLUMNS][XALG_PAGES] = { 0 };
 	packed_graphics_t output = {
 		XALG_COLUMNS,
@@ -106,32 +110,38 @@ int main(void)
 			LED_Toggle(LED_2);
 		}
 		
-		// Graphics test/example
+		// Graphics test/example (one-shot))
 		if (sw_timer_expired(splash_timeout))
 		{
-			sw_timer_reset(&splash_timeout);
+			splash_timeout.running = false;
 			
-			if (splash_timeout.length > 33)
-			{
-				// First run, draw some basic geometry and update timer to 30Hz
-				splash_timeout.length = 33;
-				
-				font_write_simple("This is Text",
-						&layer1, S_VECTOR(1, 1), 0, false);
-				graphics_fill_rect(&layer1, S_VECTOR(0, 11),
-						S_VECTOR(layer1.size.x - 1, 21), true);
-				font_write_simple("This is Inverted Text",
-						&layer1, S_VECTOR(1, 12), 0, true);
-				graphics_draw_rect(&layer1, S_VECTOR(32, 27),
-						S_VECTOR(61, 56), true);
-				graphics_fill_rect(&layer1, S_VECTOR(35, 30),
-						S_VECTOR(58, 53), true);
-				graphics_draw_line(&layer1, S_VECTOR(33, 28),
-						S_VECTOR(60, 55), false);
-			}
+			// Draw test graphical elements
+			font_write_simple("This is Text",
+					&layer1, S_VECTOR(1, 1), 0, false);
+			graphics_fill_rect(&layer1, S_VECTOR(0, 11),
+					S_VECTOR(layer1.size.x - 1, 21), true);
+			font_write_simple("This is Inverted Text",
+					&layer1, S_VECTOR(1, 12), 0, true);
+			graphics_draw_rect(&layer1, S_VECTOR(32, 27),
+					S_VECTOR(61, 56), true);
+			graphics_fill_rect(&layer1, S_VECTOR(35, 30),
+					S_VECTOR(58, 53), true);
+			graphics_draw_line(&layer1, S_VECTOR(33, 28),
+					S_VECTOR(60, 55), false);
+			graphics_dotted_line(&layer1, S_VECTOR( 5, 27), 30, true, 1, true);
+			graphics_dotted_line(&layer1, S_VECTOR(10, 27), 30, true, 2, true);
+			graphics_dotted_line(&layer1, S_VECTOR(15, 27), 30, true, 3, true);
+			graphics_dotted_line(&layer1, S_VECTOR(20, 27), 30, true, 4, true);
+			graphics_dotted_line(&layer1, S_VECTOR(25, 27), 30, true, 5, true);
+			
+			// Test mask
+			graphics_fill_rect(&layer2, S_VECTOR_ZERO,
+					S_VECTOR_SUB(layer2.size, S_VECTOR_ONE), true);
+			graphics_fill_rect(&layer2, S_VECTOR(48, 36), S_VECTOR(95, 47),
+					false);
 			
 			// Display layers
-			graphics_pack_layers(layers, LAYER_COUNT, &output, NULL);
+			graphics_pack_layers(layers, LAYER_COUNT, &output, layer_is_mask);
 			ssd1305_write_all(&output);
 		}
 	}

@@ -60,7 +60,7 @@ set_pb2div (uint8_t setting)
 void
 pmp_6800_init ()
 {
-	set_pb2div(6);
+	set_pb2div(2);
 
 	IEC4bits.PMPEIE = 0;
 	IEC4bits.PMPIE = 0;

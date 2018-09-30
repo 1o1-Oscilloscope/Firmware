@@ -20,7 +20,9 @@
 #define FONT_ASCII_COUNT     95
 #define FONT_LINE_FEED       10
 #define FONT_CARRIAGE_RETURN 13
-#define FONT_SIMPLE_MAX_LENGTH 120
+#define FONT_SIMPLE_MAX_LENGTH 256
+
+#define CONST_VECTOR(x, y) {x, y}
 
 #ifdef	__cplusplus
 extern "C"
@@ -43,8 +45,7 @@ typedef enum
 
 typedef struct
 {
-	s_coord_t width;
-	s_coord_t height;
+	s_vector_t size;
 	s_coord_t y_offset;
 	s_pixel_t * pixels;
 } font_glyph_t;
@@ -64,9 +65,11 @@ extern font_t font_standard;
 extern font_glyph_t font_default_glyph;
 
 
-font_error_t font_write        (font_t * font, char * text, int length,
+font_error_t font_write        (font_t * font, char * text, unsigned int length,
 								screen_t * screen, s_vector_t origin,
 								s_coord_t wrap_width, bool invert);
+font_error_t font_size         (font_t * font, char * text, unsigned int length,
+								s_coord_t wrap_width, s_vector_t * size);
 font_error_t font_write_simple (char * text, screen_t * screen,
 								s_vector_t origin, s_coord_t wrap_width,
 								bool invert);
