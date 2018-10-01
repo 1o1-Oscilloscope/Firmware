@@ -3,19 +3,16 @@
 #include "leds.h"
 #include "ports.h"
 
-#define LED_ON  1
-#define LED_OFF 0
-
 void LED_On(LED led){
     switch(led){
         case LED_1:
-            LED_1_LAT = LED_ON ;
+            LED_1_LAT = PIN_ON ;
             break;
         case LED_2:
-            LED_2_LAT = LED_ON ;
+            LED_2_LAT = PIN_ON ;
             break;
 	case LED_3:
-            LED_3_LAT = LED_ON ;
+            LED_3_LAT = PIN_ON ;
             break;
         default:
             break;
@@ -25,13 +22,13 @@ void LED_On(LED led){
 void LED_Off(LED led){
     switch(led){
         case LED_1:
-            LED_1_LAT = LED_OFF;
+            LED_1_LAT = PIN_OFF;
             break;
         case LED_2:
-            LED_2_LAT = LED_OFF;
+            LED_2_LAT = PIN_OFF;
             break;
 	case LED_3:
-            LED_3_LAT = LED_OFF;
+            LED_3_LAT = PIN_OFF;
             break;
         default:
             break;
@@ -57,11 +54,11 @@ void LED_Toggle(LED led){
 bool LED_Get(LED led){
     switch(led){
         case LED_1:
-            return ( ( LED_1_LAT == LED_ON ) ? true : false );
+            return ( ( LED_1_LAT == PIN_ON ) ? true : false );
         case LED_2:
-            return ( ( LED_2_LAT == LED_ON ) ? true : false );
+            return ( ( LED_2_LAT == PIN_ON ) ? true : false );
 	case LED_3:
-            return ( ( LED_3_LAT == LED_ON ) ? true : false );
+            return ( ( LED_3_LAT == PIN_ON ) ? true : false );
         default:
             break;
     }

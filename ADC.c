@@ -6,8 +6,9 @@
 
 #include "ADC.h"
 
-void init_ADC(void)
-{
+uint8_t trigger_level = 0;
+
+void init_ADC(void){
     ADC0CFG = DEVADC0;        //Load ADC0 Calibration values
     ADC1CFG = DEVADC1;        //Load ADC1 Calibration values
     ADC2CFG = DEVADC2;        //Load ADC2 Calibration values
@@ -22,7 +23,7 @@ void init_ADC(void)
     ADCCON1bits.FSSCLKEN = 1;	//Fast synchronous SYSCLK to ADC control clock is enabled
     ADCCON3bits.ADCSEL = 1;        	// Select ADC input clock source = SYSCLK 200Mhz
     ADCCON3bits.CONCLKDIV = 1;     	// Analog-to-Digital Control Clock (TQ) Divider = SYSCLK/2
-
+    
     // ADC0 Module setup: TAD = SYSCLK/4, 6bit, SAMC=3TAD, OC1 Trigger
     ANSELBSET = 0x1;		//Enable analog AN0 input
     ADC0TIMEbits.ADCDIV = 1;		// ADCx Clock Divisor, Divide by 2, 50Mhz
@@ -32,6 +33,7 @@ void init_ADC(void)
     ADCANCONbits.ANEN0 = 1;		// Enable ADC0 analog bias/logic
     ADCCON3bits.DIGEN0 = 1;		// Enable ADC0 digital logic
     ADCGIRQEN1bits.AGIEN0 = 1;	//Enb ADC0 AN0 interrupts for DMA
+    ADCTRGMODEbits.SH0ALT = 1; // Change input to AN45
 
     // ADC1 Module setup: TAD = SYSCLK/4, 6bit, SAMC=3TAD
     ANSELBSET = 0x2;		//Enable analog AN1 input
@@ -44,6 +46,7 @@ void init_ADC(void)
     ADCANCONbits.ANEN1 = 1;		// Enable ADC1 analog bias/logic
     ADCCON3bits.DIGEN1 = 1;		// Enable ADC1 digital logic
     ADCGIRQEN1bits.AGIEN1 = 1;	//Enb ADC1 AN1 interrupts for DMA
+    ADCTRGMODEbits.SH1ALT = 1; // Change input to AN46
 
     // ADC2 Module setup: TAD = SYSCLK/4, 6bit, SAMC=3TAD, OC5 Trigger
     ANSELBSET = 0x4;		//Enable analog AN2 input
@@ -83,10 +86,10 @@ void init_ADC(void)
         
     init_DMA();		//Initialize DMA
     init_TMR3();	//Initialize and enable ADC interleaved triggers
+    init_comparator(); // Init compairator
 }
 
-void init_DMA(void)
-{
+void init_DMA(void){
     // ADC_DATA_VECTOR begins a DMA transfer.
     DCH0ECONbits.CHSIRQ = ADC3_IRQ; //DMA_TRIGGER_ADC3_DATA3;
 	DCH0ECONbits.SIRQEN = 1;	//DMA Chan_0 Start IRQ Enable
@@ -102,7 +105,7 @@ void init_DMA(void)
 
     // Set DMA Destination Size
 	// (uint16_t) INTERLEAVED_ADC_COUNT*(ADC_DMA_BUFF_SIZE)*sizeof(adc_bufA[0]);
-    DCH0DSIZ = (uint16_t) 4*(ADC_DMA_BUFF_SIZE)*sizeof(adc_bufA[0]);
+    DCH0DSIZ = (uint16_t) (ADC_DMA_BUFF_SIZE)*sizeof(adc_bufA[0]);
 
     // Set Cell Size
     DCH0CSIZ = (uint16_t) sizeof(adc_bufA[0]);
@@ -121,8 +124,7 @@ void init_DMA(void)
     DMACONbits.ON = 1;	//Enb DMA
 }
 
-void init_TMR3(void)
-{
+void init_TMR3(void){
     PR3 = T3_ADC_TRIG;		//ADC3 TRM3 Trigger throughput rate
     
     // ADC0 Trigger setup:
@@ -153,22 +155,238 @@ void init_TMR3(void)
 
 }
 
-void __attribute__((interrupt(ipl7auto), vector(_DMA0_VECTOR), aligned(16), nomips16)) isr ()
+void init_comparator(void){
+    ADCCMPCON1bits.ENDCMP = 0; // Disable comparator 1
+    
+    ADCCMPEN1bits.CMPE2 = 1; // Enable comparator 1 on AN 2
+    ADCCMPCON1bits.DCMPGIEN = 0; // Enable interrupts
+    ADCCMPCON1bits.DCMPED = 0; // Clear event
+    uint8_t dummy = ADCCMPCON1bits.AINID; // Clear event by reading source bits
+    ADCCMPCON1bits.IEHIHI = 1; // Trigger when above trigger values
+    
+    ADCCMPCON1bits.ENDCMP = 1; // Enable comparator 1
+    IEC1 = 1; // Inturrupt enable
+}
+
+void reset_trigger(void){
+    adc_buf_index = 255;
+    data_ready = false;
+    DCH0CONbits.CHEN = 1;
+}
+
+void set_comp_level(uint16_t level){
+    ADCCMPCON1bits.ENDCMP = 0; // Disable comparator 1
+    ADCCMP1bits.DCMPHI = level;
+    reset_trigger();
+    ADCCMPCON1bits.ENDCMP = 1; // Enable comparator 1
+}
+
+void set_trig_level(uint8_t level){
+    trigger_level = level;
+}
+
+uint32_t trigger_check(uint8_t buffer_num){
+    uint32_t* buffer = NULL;
+    uint16_t real_trig_level = trigger_level << 6;
+    
+    switch (adc_buf_index){
+        case 0:
+            buffer = adc_bufA;
+            break;
+        case 1:
+            buffer = adc_bufB;
+            break;
+        case 2:
+            buffer = adc_bufC;
+            break;
+        case 3:
+            buffer = adc_bufD;
+            break;
+        case 4:
+            buffer = adc_bufE;
+            break;
+        default:
+            return false;
+    }
+    // if we are in a portion of the signal that is higher than the trigger
+    // riseing edge trigger only
+    bool high_level = false;
+    if (buffer[0] > real_trig_level){
+        high_level = true;
+    }
+    
+    uint32_t i = 0;
+    for (i = 0; i < ADC_DMA_BUFF_SIZE; i++){
+        if (high_level){
+            if (buffer[i] < real_trig_level){
+                high_level = false;
+            }
+        } else {
+            if (buffer[i] > real_trig_level){
+                return i;
+            }
+        }
+    }
+    return UINT32_MAX;
+}
+
+void __attribute__((interrupt(ipl7auto), vector(_ADC_DC1_VECTOR), aligned(16), nomips16)) adc_comp_isr ()
+{
+    if (adc_buf_index == 255){
+        adc_trigger_index = adc_buf_index; // set the buffer index
+    }
+    uint8_t dummy = ADCCMPCON1bits.AINID; // Clear event by reading source bits
+    ADCCMPCON1bits.DCMPED = 0; // clear event
+}
+
+void get_adc_data(uint8_t *buff, uint32_t decimation){
+    uint32_t start_sample = trigger_check(adc_trigger_index) + ADC_DMA_BUFF_SIZE * 2;
+    uint32_t offset = (96/2) * decimation;
+    start_sample = start_sample - offset;
+    
+    uint32_t* buffer = NULL;
+    
+    switch (adc_buf_index){
+        case 0:
+            buffer = adc_bufA;
+            break;
+        case 1:
+            buffer = adc_bufB;
+            break;
+        case 2:
+            buffer = adc_bufC;
+            break;
+        case 3:
+            buffer = adc_bufD;
+            break;
+        case 4:
+            buffer = adc_bufE;
+            break;
+        default:
+            return;
+    }
+    
+    uint32_t i = 0;
+    
+    for (; i < 96; i++){
+        buff[i] = (uint8_t) (buffer[start_sample + (i * decimation)] >> 6);
+    }
+}
+
+/*
+void __attribute__((interrupt(ipl7auto), vector(_DMA0_VECTOR), aligned(16), nomips16)) adc_dma_isr ()
 {
     IFS4bits.DMA0IF = 0;	//Clr DMA Chan 0 int flg
     DCH0INTbits.CHDDIF = 0;	//Clr DMA dest done flg
-
-    adc_dma_buf_full_flg = 1;	//Current DMA buffer is full
-
-    if(adc_buf_index == 0)	//if "adc_bufA" full, change DMA dest to "adc_bufB"
-    {
-        DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufB[0]);
-        adc_buf_index = 1; 
+    
+    adc_buf_index++;
+    if (adc_buf_index > 4){
+        adc_buf_index = 0;
     }
-    else			//if "adc_bufB" full, change DMA dest to "adc_bufA"
-    {
-        DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufA[0]);
-        adc_buf_index = 0; 
+    
+    switch (adc_buf_index){
+        case 0:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufA[0]);
+            if (adc_trigger_index != 3){
+                DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            } else {
+                if (trigger_check(3) != UINT32_MAX){
+                    data_ready = true;
+                } else {
+                    DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+                }
+            }
+            break;
+        case 1:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufB[0]);
+            if (adc_trigger_index != 4){
+                DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            } else {
+                if (trigger_check(4) != UINT32_MAX){
+                    data_ready = true;
+                } else {
+                    DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+                }
+            }
+            break;
+        case 2:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufC[0]);
+            if (adc_trigger_index != 0){
+                DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            } else {
+                if (trigger_check(0) != UINT32_MAX){
+                    data_ready = true;
+                } else {
+                    DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+                }
+            }
+            break;
+        case 3:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufD[0]);
+            if (adc_trigger_index != 1){
+                DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            } else {
+                if (trigger_check(1) != UINT32_MAX){
+                    data_ready = true;
+                } else {
+                    DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+                }
+            }
+            break;
+        case 4:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufE[0]);
+            if (adc_trigger_index != 2){
+                DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            } else {
+                if (trigger_check(2) != UINT32_MAX){
+                    data_ready = true;
+                } else {
+                    DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+                }
+            }
+            break;
+        default:
+            break;
     }
-    DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+}*/
+
+void __attribute__((interrupt(ipl7auto), vector(_DMA0_VECTOR), aligned(16), nomips16)) adc_dma_isr ()
+{
+    IFS4bits.DMA0IF = 0;	//Clr DMA Chan 0 int flg
+    DCH0INTbits.CHDDIF = 0;	//Clr DMA dest done flg
+    
+    adc_buf_index = (adc_buf_index + 1) % 5;
+    
+    switch (adc_buf_index){
+        case 0:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufA[0]);
+            if (adc_trigger_index != 3){
+                DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            } else {
+                if (trigger_check(3) != UINT32_MAX){
+                    data_ready = true;
+                } else {
+                    DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+                }
+            }
+            break;
+        case 1:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufB[0]);
+            DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            break;
+        case 2:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufC[0]);
+            DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            break;
+        case 3:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufD[0]);
+            DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            break;
+        case 4:
+            DCH0DSA = (uint32_t) VirtAddr_TO_PhysAddr((const void *)&adc_bufE[0]);
+            DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
+            break;
+        default:
+            break;
+    }
 }

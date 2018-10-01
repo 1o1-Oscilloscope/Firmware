@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.c Config_Bits.c leds.c ports.c sw_timer.c
+SOURCEFILES_QUOTED_IF_SPACED=main.c Config_Bits.c leds.c ports.c sw_timer.c ADC.c gain_set.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_Bits.o ${OBJECTDIR}/leds.o ${OBJECTDIR}/ports.o ${OBJECTDIR}/sw_timer.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_Bits.o.d ${OBJECTDIR}/leds.o.d ${OBJECTDIR}/ports.o.d ${OBJECTDIR}/sw_timer.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_Bits.o ${OBJECTDIR}/leds.o ${OBJECTDIR}/ports.o ${OBJECTDIR}/sw_timer.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/gain_set.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_Bits.o.d ${OBJECTDIR}/leds.o.d ${OBJECTDIR}/ports.o.d ${OBJECTDIR}/sw_timer.o.d ${OBJECTDIR}/ADC.o.d ${OBJECTDIR}/gain_set.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_Bits.o ${OBJECTDIR}/leds.o ${OBJECTDIR}/ports.o ${OBJECTDIR}/sw_timer.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_Bits.o ${OBJECTDIR}/leds.o ${OBJECTDIR}/ports.o ${OBJECTDIR}/sw_timer.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/gain_set.o
 
 # Source Files
-SOURCEFILES=main.c Config_Bits.c leds.c ports.c sw_timer.c
+SOURCEFILES=main.c Config_Bits.c leds.c ports.c sw_timer.c ADC.c gain_set.c
 
 
 CFLAGS=
@@ -136,6 +136,18 @@ ${OBJECTDIR}/sw_timer.o: sw_timer.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/sw_timer.o 
 	@${FIXDEPS} "${OBJECTDIR}/sw_timer.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -DICD3PlatformTool=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/sw_timer.o.d" -o ${OBJECTDIR}/sw_timer.o sw_timer.c    -DXPRJ_Main=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
 	
+${OBJECTDIR}/ADC.o: ADC.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/ADC.o.d 
+	@${RM} ${OBJECTDIR}/ADC.o 
+	@${FIXDEPS} "${OBJECTDIR}/ADC.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -DICD3PlatformTool=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/ADC.o.d" -o ${OBJECTDIR}/ADC.o ADC.c    -DXPRJ_Main=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/gain_set.o: gain_set.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/gain_set.o.d 
+	@${RM} ${OBJECTDIR}/gain_set.o 
+	@${FIXDEPS} "${OBJECTDIR}/gain_set.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -DICD3PlatformTool=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gain_set.o.d" -o ${OBJECTDIR}/gain_set.o gain_set.c    -DXPRJ_Main=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
+	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -166,6 +178,18 @@ ${OBJECTDIR}/sw_timer.o: sw_timer.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/sw_timer.o.d 
 	@${RM} ${OBJECTDIR}/sw_timer.o 
 	@${FIXDEPS} "${OBJECTDIR}/sw_timer.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/sw_timer.o.d" -o ${OBJECTDIR}/sw_timer.o sw_timer.c    -DXPRJ_Main=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/ADC.o: ADC.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/ADC.o.d 
+	@${RM} ${OBJECTDIR}/ADC.o 
+	@${FIXDEPS} "${OBJECTDIR}/ADC.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/ADC.o.d" -o ${OBJECTDIR}/ADC.o ADC.c    -DXPRJ_Main=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/gain_set.o: gain_set.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/gain_set.o.d 
+	@${RM} ${OBJECTDIR}/gain_set.o 
+	@${FIXDEPS} "${OBJECTDIR}/gain_set.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gain_set.o.d" -o ${OBJECTDIR}/gain_set.o gain_set.c    -DXPRJ_Main=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
 	
 endif
 

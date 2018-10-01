@@ -52,20 +52,14 @@
 #include <stdbool.h>
 #include <sys/attribs.h>
 
-//----------------------------------------------------------
-//                         BF1SEQ0
-//----------------------------------------------------------
-#pragma config TSEQ =       0x0000
-#pragma config CSEQ =       0xFFFF
-
 // *************************************************************************************************
 //                                  U S E R     D E F I N E S
 // Note: User must configure as required
 // *************************************************************************************************
-#define TAD_TRIGGER_SOURCE_SPACING 2.5 // TAD trigger spacing value from ADC Table 13 or 15 accordingly  w/12bit & 4 interleaved ADCs
+#define TAD_TRIGGER_SOURCE_SPACING 4 // TAD trigger spacing value from ADC Table 13 or 15 accordingly  w/12bit & 4 interleaved ADCs
 #define INTERLEAVED_ADC_COUNT      4        // Number of interleaved ADC (Cannot be <2 or >4). Changing this value will
                                                                                    // automatically scale the number of interleaved ADC and triggers utilized in this code.
-#define ADC_DMA_BUFF_SIZE      1024  //ADC DMA buffer size
+#define ADC_DMA_BUFF_SIZE      2048  //ADC DMA buffer size
 
 //
 // *************************************************************************************************
@@ -135,6 +129,10 @@
 
 #define VirtAddr_TO_PhysAddr(v) ((unsigned long)(v) & 0x1FFFFFFF)
 
+#if ((INTERLEAVED_ADC_COUNT  <  2) | (INTERLEAVED_ADC_COUNT  >  4))
+#error  INTERLEAVED_ADC_COUNT error, it is either less than 2 or greater than 4
+#endif
+
 // *************************************************************************************************
 //        F U N C T I O N     P R O T O T Y P E S
 // *************************************************************************************************
@@ -153,6 +151,8 @@ bool adc_dma_buf_full_flg = 0;
 // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 // $                            M A I N       R O U T I N E                                                                         $
 // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#include "gain_set.h"
+#include "ports.h"
 int main(void)
 {
     // ******************************************************************************
@@ -178,7 +178,7 @@ int main(void)
     // ******************************************************************************
     // * Disable all ANx pins that are enabled by default on reset
     // ******************************************************************************
-    /*ANSELA = 0xFFFF;		//Disable all analog ANx input pins
+    /*ANSELACLR = 0xFFFF;		//Disable all analog ANx input pins
     ANSELBCLR = 0xFFFF;		//Disable all analog ANx input pins
     ANSELCCLR = 0xFFFF;		//Disable all analog ANx input pins
     ANSELDCLR = 0xFFFF;		//Disable all analog ANx input pins
@@ -186,13 +186,14 @@ int main(void)
     ANSELFCLR = 0xFFFF;		//Disable all analog ANx input pins
     ANSELGCLR = 0xFFFF;		//Disable all analog ANx input pins
     ANSELHCLR = 0xFFFF;		//Disable all analog ANx input pins
-    ANSELJCLR = 0xFFFF;		//Disable all analog ANx input pins */
+    ANSELJCLR = 0xFFFF;		//Disable all analog ANx input pins*/
 
     // ******************************************************************************
     // Initialize and enable ADC(s) followed by ADC trigger sources 2nd
     // ******************************************************************************
     init_ADC();                //Initialize and enable interleaved ADCs first before PWM ADC triggers are enabled
-
+	Gain_Set(GAIN_1);
+    ports_init();
     while(1)
     { 
         if(adc_dma_buf_full_flg)	//If current DMA buffer is full
@@ -290,14 +291,17 @@ void init_ADC(void)
     ADCCON3bits.ADCSEL = 1;        	// Select ADC input clock source = SYSCLK 200Mhz
     ADCCON3bits.CONCLKDIV = 1;     	// Analog-to-Digital Control Clock (TQ) Divider = SYSCLK/2
 
+    ADCTRGMODEbits.SH0ALT = 1;
+    ADCTRGMODEbits.SH1ALT = 1;
+    
     // ******************************************************************************
     // * ADC0 Module setup:
-    // *   TAD = SYSCLK/4, 6bit, SAMC=3TAD, OC1 Trigger
+    // *   TAD = SYSCLK/4, 12bit, SAMC=3TAD, OC1 Trigger
     // ******************************************************************************
     ANSELBSET = 0x1;		//Enable analog AN0 input
     ADC0TIMEbits.ADCDIV = 1;		// ADCx Clock Divisor, Divide by 2, 50Mhz
     ADC0TIMEbits.SAMC = 1;		// 3 TAD (Hardware enforced sample time)
-    ADC0TIMEbits.SELRES = 0;	// ADC0 6bit resolution mode
+    ADC0TIMEbits.SELRES = 3;	// ADC0 12bit resolution mode
     ADCTRG1bits.TRGSRC0 = 8;	// Set AN0 to trigger from OC1
     ADCANCONbits.ANEN0 = 1;		// Enable ADC0 analog bias/logic
     ADCCON3bits.DIGEN0 = 1;		// Enable ADC0 digital logic
@@ -305,15 +309,16 @@ void init_ADC(void)
 
     // ******************************************************************************
     // * ADC1 Module setup:
-    // *   TAD = SYSCLK/4, 6bit, SAMC=3TAD
+    // *   TAD = SYSCLK/4, 12bit, SAMC=3TAD
     // *   if(INTERLEAVED_ADC_COUNT == 2) TMR3 trigger else OC3 Trigger
     // ******************************************************************************
     ANSELBSET = 0x2;		//Enable analog AN1 input
     ADC1TIMEbits.ADCDIV = 1;		// ADCx Clock Divisor, Divide by 2, 50Mhz
     ADC1TIMEbits.SAMC = 1;		// 3 TAD
-    ADC1TIMEbits.SELRES = 0;	// ADC1 6bit resolution mode
+    ADC1TIMEbits.SELRES = 3;	// ADC1 12bit resolution mode
 
-    ADCTRG1bits.TRGSRC1 = 9;	// Set ADC1 to trigger from OC3
+    if(INTERLEAVED_ADC_COUNT == 2) ADCTRG1bits.TRGSRC1 = 6; // Set ADC1 to trigger from TMR3
+    else ADCTRG1bits.TRGSRC1 = 9;	// Set ADC1 to trigger from OC3
 
     ADCANCONbits.ANEN1 = 1;		// Enable ADC1 analog bias/logic
     ADCCON3bits.DIGEN1 = 1;		// Enable ADC1 digital logic
@@ -321,7 +326,7 @@ void init_ADC(void)
 
     // ******************************************************************************
     // * ADC2 Module setup:
-    // *    TAD = SYSCLK/4, 6bit, SAMC=3TAD, OC5 Trigger
+    // *    TAD = SYSCLK/4, 12bit, SAMC=3TAD, OC5 Trigger
     // *   if(INTERLEAVED_ADC_COUNT == 3) TMR3 trigger else OC5 Trigger
     // ******************************************************************************
     if(INTERLEAVED_ADC_COUNT  >  2)
@@ -329,9 +334,10 @@ void init_ADC(void)
         ANSELBSET = 0x4;		//Enable analog AN2 input
         ADC2TIMEbits.ADCDIV = 1;	// ADCx Clock Divisor, Divide by 2, 50Mhz
         ADC2TIMEbits.SAMC = 1;	// 3 TAD
-        ADC2TIMEbits.SELRES = 0;	// ADC2 6bit resolution mode
+        ADC2TIMEbits.SELRES = 3;	// ADC2 12bit resolution mode
 
-        ADCTRG1bits.TRGSRC2 = 10; // Set ADC2 to trigger from OC5
+        if(INTERLEAVED_ADC_COUNT == 3) ADCTRG1bits.TRGSRC2 = 6; // Set ADC2 to trigger from TMR3
+        else ADCTRG1bits.TRGSRC2 = 10; // Set ADC2 to trigger from OC5
 
         ADCANCONbits.ANEN2 = 1;	// Enable ADC2 analog bias/logic
         ADCCON3bits.DIGEN2 = 1;	// Enable ADC2 digital logic      
@@ -341,14 +347,14 @@ void init_ADC(void)
     // ******************************************************************************
     // * ADC3 Module setup:
     // *   if(INTERLEAVED_ADC_COUNT == 4)
-    // *   TAD = SYSCLK/4, 6bit, SAMC=3TAD, TMR3 Trigger
+    // *   TAD = SYSCLK/4, 12bit, SAMC=3TAD, TMR3 Trigger
     // ******************************************************************************
     if(INTERLEAVED_ADC_COUNT  >  3) 
     {
         ANSELBSET = 0x8;		//Enable analog AN3 input
         ADC3TIMEbits.ADCDIV = 1;	// ADCx Clock Divisor, Divide by 2, 50Mhz
         ADC3TIMEbits.SAMC = 1;	// 3 TAD
-        ADC3TIMEbits.SELRES = 0;	// ADC3 6bit resolution mode
+        ADC3TIMEbits.SELRES = 3;	// ADC3 12bit resolution mode
         ADCTRG1bits.TRGSRC3 = 6;	// Set ADC3 to trigger from TMR3
         ADCANCONbits.ANEN3 = 1;	// Enable ADC3 analog bias/logic
         ADCCON3bits.DIGEN3 = 1;	// Enable ADC3 digital logic     
@@ -363,8 +369,8 @@ void init_ADC(void)
     while(!ADCCON2bits.BGVRRDY);	// Wait until the reference voltage is ready
     while(!ADCANCONbits.WKRDY0); 	// Wait until ADC0 is ready
     while(!ADCANCONbits.WKRDY1); 	// Wait until ADC1 is ready
-    while(!ADCANCONbits.WKRDY2); // Wait until ADC2 is ready
-    while(!ADCANCONbits.WKRDY3); // Wait until ADC3 is ready
+    if(INTERLEAVED_ADC_COUNT  >  2) while(!ADCANCONbits.WKRDY2); // Wait until ADC2 is ready
+    if(INTERLEAVED_ADC_COUNT  >  3) while(!ADCANCONbits.WKRDY3); // Wait until ADC3 is ready
 
     ADCDATA0;   // Read ADC data to make sure that data ready bits are clear.
     ADCDATA1;   //
@@ -385,7 +391,9 @@ void init_DMA(void)
     // * Set the DMA trigger source.  Each interrupt on the indicated 
     // * ADC_DATA_VECTOR begins a DMA transfer.
     // **********************************************************
-    DCH0ECONbits.CHSIRQ = ADC3_IRQ; //DMA_TRIGGER_ADC3_DATA3;
+    if(INTERLEAVED_ADC_COUNT == 2)DCH0ECONbits.CHSIRQ = ADC1_IRQ; //DMA_TRIGGER_ADC0_DATA0;
+    if(INTERLEAVED_ADC_COUNT > 2)DCH0ECONbits.CHSIRQ = ADC2_IRQ; //DMA_TRIGGER_ADC2_DATA2;
+    if(INTERLEAVED_ADC_COUNT > 3)DCH0ECONbits.CHSIRQ = ADC3_IRQ; //DMA_TRIGGER_ADC3_DATA3;
 
     // **********************************************************
     // * Enable DMA Channel Start IRQ.
@@ -465,21 +473,28 @@ void init_TMR3(void)
     // * ADCx Trigger setup:
     // *   TMR3 = OC3 time base, continuous pulse 
     // ******************************************************************************
-    OC3CONbits.OCTSEL = 1;	//Timer"y" is clk source for OC3 module
-    OC3CONbits.OCM = 5; 	//Init OC3 low; gen continuous output pulses
-    OC3R = OC3_ADC_TRIG;	//ADC1 OC3 Trigger throughput rate
-    OC3RS  = OC3_ADC_TRIG+2;
-    OC3CONSET = 0x8000;	// Enable OC3
+    if(INTERLEAVED_ADC_COUNT  >  2) 
+    {
+        OC3CONbits.OCTSEL = 1;	//Timer"y" is clk source for OC3 module
+        OC3CONbits.OCM = 5; 	//Init OC3 low; gen continuous output pulses
+        OC3R = OC3_ADC_TRIG;	//ADC1 OC3 Trigger throughput rate
+        OC3RS  = OC3_ADC_TRIG+2;
+        OC3CONSET = 0x8000;	// Enable OC3
+    }
 
     // ******************************************************************************
     // * ADCy Trigger setup:
     // *   TMR3 = OC5 time base, continuous pulse 
     // ******************************************************************************
-    OC5CONbits.OCTSEL = 1;	//Timer"y" is clk source for OC5 module
-    OC5CONbits.OCM = 5; 	//Init OC5 low; gen continuous output pulses
-    OC5R = OC5_ADC_TRIG;	//ADC2 OC5 Trigger throughput rate
-    OC5RS  = OC5_ADC_TRIG+2;
-    OC5CONSET = 0x8000;	// Enable OC5
+    if(INTERLEAVED_ADC_COUNT  >  3) 
+    {
+        OC5CONbits.OCTSEL = 1;	//Timer"y" is clk source for OC5 module
+        OC5CONbits.OCM = 5; 	//Init OC5 low; gen continuous output pulses
+        OC5R = OC5_ADC_TRIG;	//ADC2 OC5 Trigger throughput rate
+        OC5RS  = OC5_ADC_TRIG+2;
+        OC5CONSET = 0x8000;	// Enable OC5
+    }
+
     T3CONSET = 0x8000;		//Start TMR3
 
 }  //End TMR3 Subroutine

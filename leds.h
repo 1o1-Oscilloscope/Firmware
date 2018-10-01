@@ -2,8 +2,7 @@
 #define LEDS_H
 
 #include <stdbool.h>
-typedef enum
-{
+typedef enum {
     LED_NONE,
     LED_1,
     LED_2,

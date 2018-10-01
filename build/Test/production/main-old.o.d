@@ -1,6 +1,7 @@
 build/Test/production/main-old.o:  \
 main-old.c  \
 sw_timer.h  \
-ports.h  \
+gain_set.h  \
+ ports.h  \
 leds.h  \
- ADC.h 
+ADC.h 

@@ -5,9 +5,11 @@
  * Created on February 28, 2018, 11:03 PM
  */
 
+#include <stdbool.h>
 #include <xc.h>
 
 #include "sw_timer.h"
+#include "gain_set.h"
 #include "ports.h"
 #include "leds.h"
 #include "ADC.h"
@@ -35,15 +37,21 @@ void proc_setup(void) {
 int main(void) {
 	proc_setup();
 	ports_init();
-	init_sw_timer();
+	init_sw_timer();    
 	init_ADC();
+	
+    set_trig_level(32);
+    
+	Gain_Set(GAIN_0_1);
 
 	sw_timer test1 = TIMER(1000);
 	sw_timer test2 = TIMER(500);
-	sw_timer test3 = TIMER(100);
+	sw_timer test3 = TIMER(250);
 
 	ANSELG = 0;
 
+    uint8_t output_buff[96];
+    
 	while (1) {
 		if (tmr_expired(test1)) {
 			reset_timer(&test1);
@@ -59,16 +67,15 @@ int main(void) {
 		}
 		
 		
-		if(adc_dma_buf_full_flg)	//If current DMA buffer is full
+		if(data_ready == true)
         {
-            adc_dma_buf_full_flg = 0;	//Clr DMA buff full flag
-
-            if(adc_buf_index == 0) { // adc_bufB Full
-               	asm("nop");
-            }
-            else { // adc_bufA Full
-                asm("nop");
-            }
+            // 63 = 100us/div
+            // 3 = 5us/div
+            // 6 = 10us/div
+            // 12 = 20us/div
+            
+            get_adc_data(output_buff, 25);
+            reset_trigger();
         }
 	}
 }
