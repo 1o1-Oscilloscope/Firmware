@@ -6,6 +6,19 @@
 
 #include "ADC.h"
 
+// [INTERLEAVED_ADC_COUNT * ADC_DMA_BUFF_SIZE]
+uint32_t __attribute__((coherent)) adc_buf[ADC_DMA_BUFF_SIZE * 5];
+uint32_t *adc_bufA = &adc_buf[ADC_DMA_BUFF_SIZE * 0];
+uint32_t *adc_bufB = &adc_buf[ADC_DMA_BUFF_SIZE * 1];
+uint32_t *adc_bufC = &adc_buf[ADC_DMA_BUFF_SIZE * 2];
+uint32_t *adc_bufD = &adc_buf[ADC_DMA_BUFF_SIZE * 3];
+uint32_t *adc_bufE = &adc_buf[ADC_DMA_BUFF_SIZE * 4];
+
+uint8_t adc_buf_index = 0;
+uint8_t adc_trigger_index = 3;
+
+bool data_ready = false;
+
 uint8_t trigger_level = 0;
 
 void init_ADC(void){
@@ -86,7 +99,7 @@ void init_ADC(void){
         
     init_DMA();		//Initialize DMA
     init_TMR3();	//Initialize and enable ADC interleaved triggers
-    init_comparator(); // Init compairator
+    // init_comparator(); // Init compairator
 }
 
 void init_DMA(void){
@@ -185,29 +198,9 @@ void set_trig_level(uint8_t level){
     trigger_level = level;
 }
 
-uint32_t trigger_check(uint8_t buffer_num){
-    uint32_t* buffer = NULL;
+uint32_t trigger_check(uint32_t* buffer){
     uint16_t real_trig_level = trigger_level << 6;
     
-    switch (adc_buf_index){
-        case 0:
-            buffer = adc_bufA;
-            break;
-        case 1:
-            buffer = adc_bufB;
-            break;
-        case 2:
-            buffer = adc_bufC;
-            break;
-        case 3:
-            buffer = adc_bufD;
-            break;
-        case 4:
-            buffer = adc_bufE;
-            break;
-        default:
-            return false;
-    }
     // if we are in a portion of the signal that is higher than the trigger
     // riseing edge trigger only
     bool high_level = false;
@@ -240,36 +233,13 @@ void __attribute__((interrupt(ipl7auto), vector(_ADC_DC1_VECTOR), aligned(16), n
 }
 
 void get_adc_data(uint8_t *buff, uint32_t decimation){
-    uint32_t start_sample = trigger_check(adc_trigger_index) + ADC_DMA_BUFF_SIZE * 2;
+    uint32_t start_sample = trigger_check(adc_bufC) + ADC_DMA_BUFF_SIZE * 2;
     uint32_t offset = (96/2) * decimation;
     start_sample = start_sample - offset;
     
-    uint32_t* buffer = NULL;
-    
-    switch (adc_buf_index){
-        case 0:
-            buffer = adc_bufA;
-            break;
-        case 1:
-            buffer = adc_bufB;
-            break;
-        case 2:
-            buffer = adc_bufC;
-            break;
-        case 3:
-            buffer = adc_bufD;
-            break;
-        case 4:
-            buffer = adc_bufE;
-            break;
-        default:
-            return;
-    }
-    
     uint32_t i = 0;
-    
     for (; i < 96; i++){
-        buff[i] = (uint8_t) (buffer[start_sample + (i * decimation)] >> 6);
+        buff[i] = (uint8_t) (adc_buf[start_sample + (i * decimation)] >> 6);
     }
 }
 
@@ -363,7 +333,7 @@ void __attribute__((interrupt(ipl7auto), vector(_DMA0_VECTOR), aligned(16), nomi
             if (adc_trigger_index != 3){
                 DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
             } else {
-                if (trigger_check(3) != UINT32_MAX){
+                if (trigger_check(adc_bufC) != UINT32_MAX){
                     data_ready = true;
                 } else {
                     DCH0CONbits.CHEN = 1;	//DMA Chan 0 enable
