@@ -1,7 +1,10 @@
-#include "gain_set.h"
-#include "ports.h"
 
-void Gain_Set(GAIN gain){
+#include "afe_gain.h"
+#include "../ports.h"
+
+void
+afe_gain_set (afe_gain_t gain)
+{
 	switch(gain){
         case GAIN_1:
             A_0_LAT = PIN_ON;

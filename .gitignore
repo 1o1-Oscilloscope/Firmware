@@ -1,3 +1,7 @@
 disassembly/
 debug/
 nbproject/private
+build/
+dist/
+nbproject/Makefile*
+nbproject/*.bash

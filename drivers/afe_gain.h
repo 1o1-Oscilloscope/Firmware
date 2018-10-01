@@ -6,8 +6,8 @@ typedef enum {
     GAIN_1,   // 1X total Gain
     GAIN_0_5, // 0.5X total Gain
 	GAIN_0_1  // 0.1X total gain
-} GAIN;
+} afe_gain_t;
 
-void Gain_Set(GAIN gain);
+void afe_gain_set (afe_gain_t gain);
 
 #endif
