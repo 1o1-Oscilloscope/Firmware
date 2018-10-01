@@ -27,19 +27,8 @@ extern "C" {
 
 #define VirtAddr_TO_PhysAddr(v) ((unsigned long)(v) & 0x1FFFFFFF)
 
-// [INTERLEAVED_ADC_COUNT * ADC_DMA_BUFF_SIZE]
-uint32_t __attribute__((coherent)) adc_buf[ADC_DMA_BUFF_SIZE * 5];
-uint32_t *adc_bufA = &adc_buf[ADC_DMA_BUFF_SIZE * 0];
-uint32_t *adc_bufB = &adc_buf[ADC_DMA_BUFF_SIZE * 1];
-uint32_t *adc_bufC = &adc_buf[ADC_DMA_BUFF_SIZE * 2];
-uint32_t *adc_bufD = &adc_buf[ADC_DMA_BUFF_SIZE * 3];
-uint32_t *adc_bufE = &adc_buf[ADC_DMA_BUFF_SIZE * 4];
-
-uint8_t adc_buf_index = 0;
-uint8_t adc_trigger_index = 3;
-
-bool data_ready = false;
-
+extern bool data_ready;
+    
 void init_ADC(void);
 void init_DMA(void);
 void init_TMR3(void);
