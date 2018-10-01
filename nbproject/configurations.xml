@@ -9,11 +9,13 @@
         <itemPath>common/sw_timer.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="drivers" projectFiles="true">
-        <itemPath>drivers/ADC.h</itemPath>
         <itemPath>drivers/pmp_6800.h</itemPath>
         <itemPath>drivers/ssd1305.h</itemPath>
         <itemPath>drivers/buttons.h</itemPath>
         <itemPath>drivers/leds.h</itemPath>
+        <itemPath>drivers/as_test.h</itemPath>
+        <itemPath>drivers/afe_gain.h</itemPath>
+        <itemPath>drivers/adc.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="graphics" projectFiles="true">
         <itemPath>graphics/packed_graphics.h</itemPath>
@@ -34,11 +36,13 @@
         <itemPath>common/sw_timer.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="drivers" projectFiles="true">
-        <itemPath>drivers/ADC.c</itemPath>
         <itemPath>drivers/pmp_6800.c</itemPath>
         <itemPath>drivers/ssd1305.c</itemPath>
         <itemPath>drivers/buttons.c</itemPath>
         <itemPath>drivers/leds.c</itemPath>
+        <itemPath>drivers/as_test.c</itemPath>
+        <itemPath>drivers/afe_gain.c</itemPath>
+        <itemPath>drivers/adc.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="graphics" projectFiles="true">
         <itemPath>graphics/packed_graphics.c</itemPath>

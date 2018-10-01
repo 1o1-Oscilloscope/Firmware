@@ -73,4 +73,23 @@ ports_init ()
 	BUT_6_TRIS = PORT_INPUT;
 	BUT_6_CNPU = 1;
 	BUT_6_ANSEL = 0;
+	
+	A_0_LAT = 0;
+	A_0_PORT = 0;
+	A_0_TRIS = PORT_OUTPUT;
+	A_0_ANSEL = 0;
+	
+	A_1_LAT = 0;
+	A_1_PORT = 0;
+	A_1_TRIS = PORT_OUTPUT;
+	A_1_ANSEL = 0;
+	
+	A_2_LAT = 0;
+	A_2_PORT = 0;
+	A_2_TRIS = PORT_OUTPUT;
+	A_2_ANSEL = 0;
+	
+	A_EN_LAT = 0;
+	A_EN_PORT = 0;
+	A_EN_TRIS = PORT_OUTPUT;
 }

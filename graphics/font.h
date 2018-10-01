@@ -71,6 +71,9 @@ extern font_t font_standard;
 extern font_glyph_t font_default_glyph;
 
 
+unsigned int font_process_string (char * text, char * buffer,
+								  unsigned int max_length);
+
 font_error_t font_write        (font_t * font, char * text, unsigned int length,
 								screen_t * screen, s_vector_t origin,
 								s_coord_t wrap_width, bool invert);

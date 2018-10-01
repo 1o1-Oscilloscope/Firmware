@@ -80,6 +80,7 @@ sw_timer_reset (sw_timer* timer)
     uint32_t local_ticks = g_ticks;
     
     timer->start_tick = local_ticks;
+	timer->running = true;
 }
 
 void __ISR(_TIMER_8_VECTOR, IPL5SRS)

@@ -144,7 +144,7 @@ font_size (font_t * font, char * text, unsigned int length,
 		}
 	}
 	
-	*size = S_VECTOR(x_max, pos.y);
+	*size = S_VECTOR(x_max - font->spacing, pos.y + font->line_height);
 	return FONT_ERROR_NONE;
 }
 

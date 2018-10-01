@@ -24,10 +24,11 @@
 
 
 void
-ssd1305_enable ()
+ssd1305_init ()
 {
 	OLED_RES_LAT = PIN_ON;
 	sw_timer wait_init = TIMER(3);
+	sw_timer_reset(&wait_init);
 	while (!sw_timer_expired(wait_init)) {}
 	
 	pmp_6800_write_command(0x40);

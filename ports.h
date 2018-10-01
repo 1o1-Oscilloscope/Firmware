@@ -71,6 +71,25 @@
 #define BUT_6_CNPU     CNPUBbits.CNPUB15
 #define BUT_6_ANSEL    ANSELBbits.ANSB15
 
+#define A_0_LAT        LATBbits.LATB7
+#define A_0_PORT       PORTBbits.RB7
+#define A_0_TRIS       TRISBbits.TRISB7
+#define A_0_ANSEL      ANSELBbits.ANSB7
+
+#define A_1_LAT        LATBbits.LATB8
+#define A_1_PORT       PORTBbits.RB8
+#define A_1_TRIS       TRISBbits.TRISB8
+#define A_1_ANSEL      ANSELBbits.ANSB8
+
+#define A_2_LAT        LATBbits.LATB9
+#define A_2_PORT       PORTBbits.RB9
+#define A_2_TRIS       TRISBbits.TRISB9
+#define A_2_ANSEL      ANSELBbits.ANSB9
+
+#define A_EN_LAT       LATDbits.LATD2
+#define A_EN_PORT      PORTDbits.RD2
+#define A_EN_TRIS      TRISDbits.TRISD2
+
 
 #define PORT_INPUT  1
 #define PORT_OUTPUT 0
