@@ -29,6 +29,7 @@ screen_t M_EXPAND(name) = {\
 
 #define LAYER_COUNT 4
 #define TOAST_MAX_LENGTH 64
+#define PIXELS_PER_DIV 16
 
 
 #ifdef	__cplusplus

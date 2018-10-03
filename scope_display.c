@@ -63,14 +63,22 @@ static void
 generate_grid (screen_t * layer)
 {
 	graphics_fill_screen(layer, false);
-	graphics_dotted_line(layer, S_VECTOR(16, 0), layer->size.y, true,  5, true);
-	graphics_dotted_line(layer, S_VECTOR(32, 0), layer->size.y, true,  5, true);
-	graphics_dotted_line(layer, S_VECTOR(48, 0), layer->size.y, true,  2, true);
-	graphics_dotted_line(layer, S_VECTOR(64, 0), layer->size.y, true,  5, true);
-	graphics_dotted_line(layer, S_VECTOR(80, 0), layer->size.y, true,  5, true);
-	graphics_dotted_line(layer, S_VECTOR(0, 16), layer->size.x, false, 5, true);
-	graphics_dotted_line(layer, S_VECTOR(0, 32), layer->size.x, false, 2, true);
-	graphics_dotted_line(layer, S_VECTOR(0, 48), layer->size.x, false, 5, true);
+	graphics_dotted_line(layer, S_VECTOR(PIXELS_PER_DIV * 1, 0), layer->size.y,
+			true,  4, true);
+	graphics_dotted_line(layer, S_VECTOR(PIXELS_PER_DIV * 2, 0), layer->size.y,
+			true,  4, true);
+	graphics_dotted_line(layer, S_VECTOR(PIXELS_PER_DIV * 3, 0), layer->size.y,
+			true,  2, true);
+	graphics_dotted_line(layer, S_VECTOR(PIXELS_PER_DIV * 4, 0), layer->size.y,
+			true,  4, true);
+	graphics_dotted_line(layer, S_VECTOR(PIXELS_PER_DIV * 5, 0), layer->size.y,
+			true,  4, true);
+	graphics_dotted_line(layer, S_VECTOR(0, PIXELS_PER_DIV * 1), layer->size.x,
+			false, 4, true);
+	graphics_dotted_line(layer, S_VECTOR(0, PIXELS_PER_DIV * 2), layer->size.x,
+			false, 2, true);
+	graphics_dotted_line(layer, S_VECTOR(0, PIXELS_PER_DIV * 3), layer->size.x,
+			false, 4, true);
 }
 
 void

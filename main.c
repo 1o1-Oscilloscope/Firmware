@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/attribs.h>
 #include <math.h>
 
@@ -36,6 +37,26 @@
 // BF1SEQ0
 #pragma config TSEQ = 0x0000
 #pragma config CSEQ = 0xFFFF
+
+#define UI_TRIGGER_MAX 63
+#define UI_TIMEDIV_MAX 213
+
+
+static void ui_cycle_gain     ();
+static void ui_oneshot_toggle ();
+static void ui_trigger_up     ();
+static void ui_trigger_down   ();
+static void ui_trigger_toast  ();
+static void ui_timediv_up     ();
+static void ui_timediv_down   ();
+static void ui_timediv_toast  ();
+
+
+static afe_gain_t ui_gain_state    = GAIN_0_1;
+static bool       ui_oneshot_state = false;
+static bool       ui_oneshot_done  = false;
+static uint8_t    ui_trigger_state = 32;
+static uint32_t   ui_timediv_state = 25;
 
 
 int main(void)
@@ -74,56 +95,40 @@ int main(void)
 	sw_timer_reset(&input_timer);
 	sw_timer_reset(&scope_timer);
 	
-	bool button1_state = false;
-	
-	uint8_t sin_buf[96] = { 0 };
-	ast_fill_sine(sin_buf, 96, 20.0f, 24, 32);
-	sd_plot_data(sin_buf, 96);
-	
-	adc_set_trigger_level(32);
-	afe_gain_t gain_state = GAIN_0_1;
-	afe_gain_set(gain_state);
+	adc_set_trigger_level(ui_trigger_state);
+	afe_gain_set(ui_gain_state);
 	
 	while(1)
 	{		
-		// Button input handling (temporary)
+		// Button input handling
 		if (sw_timer_expired(input_timer))
 		{
 			sw_timer_reset(&input_timer);
-			if (input_timer.length > 50)
-			{
-				input_timer.length = 50;
-			}
+			button_task();
 			
-			if (!button1_state && button_read(BUTTON_1))
-			{ // Button Rising Edge - Change Gain
-				switch (gain_state)
-				{
-					case GAIN_1:
-						gain_state = GAIN_0_5;
-						sd_show_toast("Gain: 0.5");
-						break;
-					
-					case GAIN_0_5:
-						gain_state = GAIN_0_1;
-						sd_show_toast("Gain: 0.1");
-						break;
-					
-					case GAIN_0_1:
-					default:
-						gain_state = GAIN_1;
-						sd_show_toast("Gain: 1.0");
-						break;
-				}
-				afe_gain_set(gain_state);
-				
-				button1_state = true;
-				led_on(LED_1);
+			if (button_pressed(BUTTON_1))
+			{
+				ui_cycle_gain();
 			}
-			else if (button1_state && !button_read(BUTTON_1))
-			{ // Button Falling Edge
-				button1_state = false;
-				led_off(LED_1);
+			if (button_pressed(BUTTON_2))
+			{
+				ui_oneshot_toggle();
+			}
+			if (button_pressed(BUTTON_3))
+			{
+				ui_timediv_up();
+			}
+			if (button_pressed(BUTTON_4))
+			{
+				ui_timediv_down();
+			}
+			if (button_pressed(BUTTON_5))
+			{
+				ui_trigger_down();
+			}
+			if (button_pressed(BUTTON_6))
+			{
+				ui_trigger_up();
 			}
 		}
 		
@@ -131,13 +136,19 @@ int main(void)
 		if (sw_timer_expired(scope_timer))
 		{
 			sw_timer_reset(&scope_timer);
-			uint8_t buff[96] = { 0 };
-			if (adc_get_data(buff, 25))
+			
+			if (!(ui_oneshot_state && ui_oneshot_done))
 			{
-				sd_plot_data(buff, 96);
-				adc_reset_trigger();
-				led_toggle(LED_3);
+				uint8_t buff[96] = { 0 };
+				if (adc_get_data(buff, ui_timediv_state))
+				{
+					sd_plot_data(buff, 96);
+					adc_reset_trigger();
+					led_toggle(LED_3);
+					ui_oneshot_done = true;
+				}
 			}
+			
 			sd_task();
 		}
 		
@@ -148,4 +159,135 @@ int main(void)
 			led_toggle(LED_2);
 		}
 	}
+}
+
+static void
+ui_cycle_gain ()
+{
+	switch (ui_gain_state)
+	{
+		case GAIN_1:
+			ui_gain_state = GAIN_0_5;
+			sd_show_toast("1.6 V/div");
+			break;
+
+		case GAIN_0_5:
+			ui_gain_state = GAIN_0_1;
+			sd_show_toast("8.0 V/div");
+			break;
+
+		case GAIN_0_1:
+		default:
+			ui_gain_state = GAIN_1;
+			sd_show_toast("0.8 V/div");
+			break;
+	}
+	afe_gain_set(ui_gain_state);
+}
+
+static void
+ui_oneshot_toggle ()
+{
+	if (ui_oneshot_state)
+	{
+		ui_oneshot_state = false;
+		sd_show_toast("Auto Trigger");
+	}
+	else
+	{
+		ui_oneshot_state = true;
+		ui_oneshot_done  = false;
+		sd_show_toast("One-Shot");
+	}
+}
+
+static void
+ui_trigger_up ()
+{
+	if (ui_trigger_state < UI_TRIGGER_MAX)
+	{
+		ui_trigger_state++;
+	}
+	
+	adc_set_trigger_level(ui_trigger_state);
+	ui_trigger_toast();
+}
+
+static void
+ui_trigger_down ()
+{
+	
+	if (ui_trigger_state > 0)
+	{
+		ui_trigger_state--;
+	}
+	
+	adc_set_trigger_level(ui_trigger_state);
+	ui_trigger_toast();
+}
+
+static void
+ui_trigger_toast ()
+{
+	float volts = (float)(ui_trigger_state - 2 * PIXELS_PER_DIV) /
+			(float)PIXELS_PER_DIV * 0.8f;
+	char message[20] = { 0 };
+	
+	switch (ui_gain_state)
+	{
+		case GAIN_0_5:
+			volts *= 0.5f;
+			break;
+
+		case GAIN_0_1:
+			volts *= 0.1f;
+			break;
+		
+		default:
+			break;
+	}
+	
+	snprintf(message, 19, "Trigger: %.2f V", volts);
+	sd_show_toast(message);
+}
+
+static void
+ui_timediv_up ()
+{
+	if (ui_timediv_state < UI_TIMEDIV_MAX)
+	{
+		ui_timediv_state++;
+	}
+	
+	ui_timediv_toast();
+}
+
+static void
+ui_timediv_down ()
+{
+	
+	if (ui_timediv_state > 0)
+	{
+		ui_timediv_state--;
+	}
+	
+	ui_timediv_toast();
+}
+
+static void
+ui_timediv_toast ()
+{
+	float seconds = (float)(ui_timediv_state * PIXELS_PER_DIV) / 10000000.0f;
+	char message[20] = { 0 };
+	
+	if (seconds < 0.001)
+	{
+		snprintf(message, 19, "%.1f us/div", seconds * 1000000);
+	}
+	else
+	{
+		snprintf(message, 19, "%.1f ms/div", seconds * 1000);
+	}
+	
+	sd_show_toast(message);
 }

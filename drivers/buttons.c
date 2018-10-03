@@ -17,6 +17,19 @@
 
 #include "../ports.h"
 
+
+static const button_t buttons[BUTTON_COUNT] = {
+	BUTTON_1,
+	BUTTON_2,
+	BUTTON_3,
+	BUTTON_4,
+	BUTTON_5,
+	BUTTON_6
+};
+static bool button_state[BUTTON_COUNT] = { 0 };
+static bool button_press[BUTTON_COUNT] = { 0 };
+
+
 bool
 button_read (button_t button)
 {
@@ -59,5 +72,37 @@ button_read (button_t button)
 	else
 	{
 		return true;
+	}
+}
+
+
+void
+button_task ()
+{
+	for (uint8_t button = 0; button < BUTTON_COUNT; button++)
+	{
+		if ((!button_state[button]) && button_read((button_t)button))
+		{
+			button_state[button] = true;
+			button_press[button] = true;
+		}
+		else if (button_state[button] && (!button_read((button_t)button)))
+		{
+			button_state[button] = false;
+		}
+	}
+}
+
+bool
+button_pressed (button_t button)
+{
+	if (button_press[(uint8_t) button])
+	{
+		button_press[(uint8_t) button] = false;
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }

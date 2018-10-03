@@ -14,7 +14,12 @@
 #ifndef BUTTONS_H
 #define	BUTTONS_H
 
+
 #include <stdbool.h>
+
+
+#define BUTTON_COUNT 6
+
 
 #ifdef	__cplusplus
 extern "C"
@@ -23,16 +28,19 @@ extern "C"
 
 
 typedef enum {
-    BUTTON_1,
-	BUTTON_2,
-	BUTTON_3,
-	BUTTON_4,
-	BUTTON_5,
-	BUTTON_6,
+    BUTTON_1 = 0,
+	BUTTON_2 = 1,
+	BUTTON_3 = 2,
+	BUTTON_4 = 3,
+	BUTTON_5 = 4,
+	BUTTON_6 = 5
 } button_t;
 
 
 bool button_read (button_t button);
+
+void button_task    ();
+bool button_pressed (button_t button);
 
 
 #ifdef	__cplusplus
